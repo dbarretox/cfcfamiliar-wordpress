@@ -15,18 +15,16 @@
         <div class="container mx-auto px-4 sm:px-6">
             <div class="flex items-center justify-between h-20">
                 <!-- Logo -->
-                <a href="<?php echo esc_url(home_url('/')); ?>" class="flex items-center space-x-3 group">
-                    <div class="w-11 h-11 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
-                        <?php if (has_custom_logo()) : ?>
-                            <?php the_custom_logo(); ?>
-                        <?php else : ?>
-                            <span class="text-white text-2xl">&#9962;</span>
-                        <?php endif; ?>
-                    </div>
-                    <div class="hidden lg:block">
-                        <span class="font-black text-lg tracking-tight transition-colors header-text">
-                            <?php echo esc_html(cfc_get_option('church_name', cfc_default('church_name'))); ?>
-                        </span>
+                <a href="<?php echo esc_url(home_url('/')); ?>" class="flex items-center group">
+                    <div class="h-14 lg:h-16 relative group-hover:scale-105 transition-all duration-300">
+                        <!-- Logo completo blanco para header transparente -->
+                        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo-cfc-full-white.svg'); ?>"
+                             alt="<?php echo esc_attr(cfc_get_option('church_name', cfc_default('church_name'))); ?>"
+                             class="h-full w-auto object-contain logo-white transition-opacity duration-300">
+                        <!-- Logo completo azul para header con fondo blanco -->
+                        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo-cfc-full-blue.svg'); ?>"
+                             alt="<?php echo esc_attr(cfc_get_option('church_name', cfc_default('church_name'))); ?>"
+                             class="absolute top-0 left-0 h-full w-auto object-contain logo-blue transition-opacity duration-300">
                     </div>
                 </a>
 
@@ -77,11 +75,10 @@
         <div class="relative h-full flex flex-col p-6">
             <!-- Header del menú -->
             <div class="flex items-center justify-between mb-12">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
-                        <span class="text-white text-xl">&#9962;</span>
-                    </div>
-                    <span class="text-white font-bold text-lg">CFC</span>
+                <div class="flex items-center">
+                    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo-cfc-full-white.svg'); ?>"
+                         alt="Centro Familiar Cristiano"
+                         class="h-10 w-auto object-contain">
                 </div>
                 <button id="close-menu" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors" aria-label="Cerrar menú">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

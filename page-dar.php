@@ -6,6 +6,9 @@
  */
 
 get_header();
+
+// Verificar que la página esté configurada (requiere información bancaria)
+cfc_require_page_setup(array('dar_hero_titulo', 'banco_nombre', 'banco_cuenta'));
 $whatsapp = cfc_get_option('church_whatsapp', cfc_default('church_whatsapp'));
 ?>
 

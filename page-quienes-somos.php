@@ -7,6 +7,9 @@
 
 get_header();
 
+// Verificar que la página esté configurada (requiere misión o visión)
+cfc_require_page_setup(array('quienes_hero_titulo', 'mision', 'vision'));
+
 // Colores para los badges del equipo
 $colores = array(
     'primary' => array('bg' => 'from-primary to-secondary', 'text' => 'text-primary'),
@@ -19,10 +22,16 @@ $colores = array(
 );
 ?>
 
+    <?php
+    // Hero section data from metabox
+    $hero_titulo = get_post_meta(get_the_ID(), 'quienes_hero_titulo', true) ?: 'Quiénes Somos';
+    $hero_subtitulo = get_post_meta(get_the_ID(), 'quienes_hero_subtitulo', true) ?: 'Una iglesia con visión de reino, enfocada en la predicación y enseñanza de la palabra';
+    $hero_imagen = get_post_meta(get_the_ID(), 'quienes_hero_imagen', true) ?: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=1920&h=1080&fit=crop';
+    ?>
     <!-- Hero Section -->
     <section class="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0">
-            <img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=1920&h=1080&fit=crop"
+            <img src="<?php echo esc_url($hero_imagen); ?>"
                  alt="Comunidad"
                  class="w-full h-full object-cover">
         </div>
@@ -30,10 +39,18 @@ $colores = array(
 
         <div class="relative z-10 text-center px-6 max-w-4xl mx-auto">
             <h1 class="text-4xl sm:text-5xl md:text-6xl font-black text-white mb-6" data-aos="fade-up">
-                Quiénes <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-cyan-200">Somos</span>
+                <?php
+                $words = explode(' ', $hero_titulo);
+                if (count($words) > 1) {
+                    $last_word = array_pop($words);
+                    echo esc_html(implode(' ', $words)) . ' <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-cyan-200">' . esc_html($last_word) . '</span>';
+                } else {
+                    echo esc_html($hero_titulo);
+                }
+                ?>
             </h1>
             <p class="text-xl text-white/90 max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="100">
-                Una iglesia con visión de reino, enfocada en la predicación y enseñanza de la palabra
+                <?php echo esc_html($hero_subtitulo); ?>
             </p>
         </div>
     </section>

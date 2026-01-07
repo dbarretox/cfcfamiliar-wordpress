@@ -1,24 +1,25 @@
 <?php
 /**
- * Template Name: Homepage
- * Front Page Template
+ * Front Page Template (fallback)
+ * Note: Use "Inicio" template for editable homepage
  *
  * @package CFC_Familiar
  */
 
 get_header();
 
-// Get hero video URL (ACF or default)
+// Get hero video URL (from options or use local video)
 $hero_video = cfc_get_option('hero_video_url', '');
 $hero_image = cfc_get_option('hero_image', '');
+$default_video = get_template_directory_uri() . '/assets/videos/cfcintrohomepage.mp4';
 ?>
 
     <!-- Hero Section -->
     <section id="inicio" class="relative h-screen flex items-center justify-center overflow-hidden">
         <!-- Video Background -->
-        <?php if ($hero_video) : ?>
+        <?php if ($hero_video || file_exists(get_template_directory() . '/assets/videos/cfcintrohomepage.mp4')) : ?>
         <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover">
-            <source src="<?php echo esc_url($hero_video); ?>" type="video/mp4">
+            <source src="<?php echo esc_url($hero_video ? $hero_video : $default_video); ?>" type="video/mp4">
         </video>
         <?php elseif ($hero_image) : ?>
         <img src="<?php echo esc_url($hero_image); ?>" alt="Hero" class="absolute inset-0 w-full h-full object-cover">

@@ -28,21 +28,59 @@ $categorias = get_terms(array(
     'hide_empty' => false,
 ));
 
-// Mapeo de categorías a iconos y colores
-$categoria_config = array(
-    'predicas' => array('icon' => '&#9962;', 'color' => 'purple', 'gradient' => 'from-purple-600 to-indigo-600'),
-    'reflexiones' => array('icon' => '&#128591;', 'color' => 'blue', 'gradient' => 'from-blue-500 to-cyan-500'),
-    'youtube' => array('icon' => '&#9654;&#65039;', 'color' => 'red', 'gradient' => 'from-red-500 to-rose-500'),
-    'podcast' => array('icon' => '&#127911;', 'color' => 'purple', 'gradient' => 'from-purple-600 to-pink-600'),
-    'estudios' => array('icon' => '&#128214;', 'color' => 'green', 'gradient' => 'from-green-500 to-teal-600'),
-    'devocionales' => array('icon' => '&#9728;&#65039;', 'color' => 'amber', 'gradient' => 'from-amber-500 to-orange-500'),
+// Fallback config para categorías existentes (si no tienen meta guardado)
+$categoria_fallback = array(
+    'predicas' => array('icon' => '⛪', 'color' => 'purple', 'gradient' => 'from-purple-600 to-indigo-600'),
+    'reflexiones' => array('icon' => '🙏', 'color' => 'blue', 'gradient' => 'from-blue-500 to-cyan-500'),
+    'youtube' => array('icon' => '▶️', 'color' => 'red', 'gradient' => 'from-red-500 to-rose-500'),
+    'podcast' => array('icon' => '🎧', 'color' => 'purple', 'gradient' => 'from-purple-600 to-pink-600'),
+    'estudios' => array('icon' => '📖', 'color' => 'green', 'gradient' => 'from-green-500 to-teal-600'),
+    'devocionales' => array('icon' => '☀️', 'color' => 'amber', 'gradient' => 'from-amber-500 to-orange-500'),
 );
+
+// Defaults para categorías nuevas sin configuración
+$default_config = array('icon' => '📖', 'color' => 'blue', 'gradient' => 'from-blue-500 to-cyan-500');
+
+/**
+ * Helper: Obtener configuración de una categoría
+ * Primero busca en term_meta (BD), luego en fallback, luego defaults
+ */
+function cfc_get_categoria_config($term_id, $slug, $fallback, $default) {
+    // Intentar obtener de la BD
+    $icon = get_term_meta($term_id, 'categoria_icono', true);
+    $color = get_term_meta($term_id, 'categoria_color', true);
+    $gradient = get_term_meta($term_id, 'categoria_gradiente', true);
+
+    // Si tiene datos en BD, usarlos
+    if ($icon || $color || $gradient) {
+        return array(
+            'icon' => $icon ?: $default['icon'],
+            'color' => $color ?: $default['color'],
+            'gradient' => $gradient ?: $default['gradient'],
+        );
+    }
+
+    // Si no, usar fallback por slug
+    if (isset($fallback[$slug])) {
+        return $fallback[$slug];
+    }
+
+    // Si no existe en fallback, usar defaults
+    return $default;
+}
+
+
+// Obtener valores del metabox si es página con template
+$page_id = get_the_ID();
+$hero_titulo = get_post_meta($page_id, 'reflexiones_hero_titulo', true) ?: 'Reflexiones';
+$hero_subtitulo = get_post_meta($page_id, 'reflexiones_hero_subtitulo', true) ?: 'Contenido para alimentar tu vida espiritual';
+$hero_imagen = get_post_meta($page_id, 'reflexiones_hero_imagen', true) ?: 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=1920&h=1080&fit=crop';
 ?>
 
     <!-- Hero Section -->
     <section class="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0">
-            <img src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=1920&h=1080&fit=crop"
+            <img src="<?php echo esc_url($hero_imagen); ?>"
                  alt="Reflexiones"
                  class="w-full h-full object-cover">
         </div>
@@ -50,10 +88,10 @@ $categoria_config = array(
 
         <div class="relative z-10 text-center px-6 max-w-4xl mx-auto">
             <h1 class="text-4xl sm:text-5xl md:text-6xl font-black text-white mb-6" data-aos="fade-up">
-                Reflexiones <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-amber-200">CFC</span>
+                <?php echo esc_html($hero_titulo); ?>
             </h1>
             <p class="text-xl text-white/90 max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="100">
-                Mensajes dominicales, devocionales, podcasts y recursos para crecer en fe
+                <?php echo esc_html($hero_subtitulo); ?>
             </p>
         </div>
     </section>
@@ -69,11 +107,10 @@ $categoria_config = array(
                     </button>
                     <?php if ($categorias && !is_wp_error($categorias)) : ?>
                         <?php foreach ($categorias as $cat) :
-                            $slug = $cat->slug;
-                            $icon = isset($categoria_config[$slug]) ? $categoria_config[$slug]['icon'] : '&#128214;';
+                            $cat_config = cfc_get_categoria_config($cat->term_id, $cat->slug, $categoria_fallback, $default_config);
                         ?>
-                        <button class="filter-tab" data-filter="<?php echo esc_attr($slug); ?>">
-                            <span><?php echo $icon; ?></span> <?php echo esc_html($cat->name); ?>
+                        <button class="filter-tab" data-filter="<?php echo esc_attr($cat->slug); ?>">
+                            <span><?php echo esc_html($cat_config['icon']); ?></span> <?php echo esc_html($cat->name); ?>
                         </button>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -179,7 +216,8 @@ $categoria_config = array(
                         $cats = get_the_terms(get_the_ID(), 'categoria_reflexion');
                         $cat_slug = ($cats && !is_wp_error($cats)) ? $cats[0]->slug : 'reflexiones';
                         $cat_name = ($cats && !is_wp_error($cats)) ? $cats[0]->name : 'Reflexión';
-                        $config = isset($categoria_config[$cat_slug]) ? $categoria_config[$cat_slug] : array('icon' => '&#128214;', 'color' => 'blue', 'gradient' => 'from-blue-500 to-cyan-500');
+                        $cat_term_id = ($cats && !is_wp_error($cats)) ? $cats[0]->term_id : 0;
+                        $config = cfc_get_categoria_config($cat_term_id, $cat_slug, $categoria_fallback, $default_config);
 
                         // Determinar el tipo de card según categoría
                         $is_video = ($tipo === 'video' || $cat_slug === 'predicas' || $cat_slug === 'youtube') && $video_url;
@@ -194,27 +232,22 @@ $categoria_config = array(
 
                         <?php if ($is_video) : ?>
                         <!-- Card de Video/Prédica -->
+                        <?php
+                        // Obtener imagen con fallback: featured → imagen_url → YouTube thumbnail → random
+                        $reflexion_image = cfc_get_reflexion_image(get_the_ID());
+                        $youtube_id = '';
+                        if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $video_url, $match)) {
+                            $youtube_id = $match[1];
+                        }
+                        // Si no hay featured ni imagen_url pero hay YouTube, usar thumbnail de YT
+                        if (!has_post_thumbnail() && !get_post_meta(get_the_ID(), 'imagen_url', true) && $youtube_id) {
+                            $reflexion_image = 'https://img.youtube.com/vi/' . $youtube_id . '/maxresdefault.jpg';
+                        }
+                        ?>
                         <div class="relative aspect-video">
-                            <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('cfc-card', array('class' => 'w-full h-full object-cover')); ?>
-                            <?php else : ?>
-                                <?php
-                                // Thumbnail de YouTube si existe
-                                $youtube_id = '';
-                                if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $video_url, $match)) {
-                                    $youtube_id = $match[1];
-                                }
-                                ?>
-                                <?php if ($youtube_id) : ?>
-                                <img src="https://img.youtube.com/vi/<?php echo esc_attr($youtube_id); ?>/maxresdefault.jpg"
-                                     alt="<?php the_title_attribute(); ?>"
-                                     class="w-full h-full object-cover">
-                                <?php else : ?>
-                                <div class="w-full h-full bg-gradient-to-br <?php echo esc_attr($config['gradient']); ?> flex items-center justify-center">
-                                    <span class="text-6xl opacity-50"><?php echo $config['icon']; ?></span>
-                                </div>
-                                <?php endif; ?>
-                            <?php endif; ?>
+                            <img src="<?php echo esc_url($reflexion_image); ?>"
+                                 alt="<?php the_title_attribute(); ?>"
+                                 class="w-full h-full object-cover">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                             <div class="absolute bottom-4 left-4 right-4">
                                 <span class="inline-block px-2 py-1 bg-purple-600 text-white text-xs font-bold rounded mb-2">
@@ -302,14 +335,11 @@ $categoria_config = array(
 
                         <?php else : ?>
                         <!-- Card Estándar con Imagen -->
+                        <?php $reflexion_image = cfc_get_reflexion_image(get_the_ID()); ?>
                         <div class="relative h-48 overflow-hidden">
-                            <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('cfc-card', array('class' => 'w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700')); ?>
-                            <?php else : ?>
-                            <div class="w-full h-full bg-gradient-to-br <?php echo esc_attr($config['gradient']); ?> flex items-center justify-center">
-                                <span class="text-6xl opacity-50"><?php echo $config['icon']; ?></span>
-                            </div>
-                            <?php endif; ?>
+                            <img src="<?php echo esc_url($reflexion_image); ?>"
+                                 alt="<?php the_title_attribute(); ?>"
+                                 class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                             <div class="absolute bottom-4 left-4 right-4">
                                 <span class="inline-block px-2 py-1 bg-<?php echo esc_attr($config['color']); ?>-500 text-white text-xs font-bold rounded mb-2">

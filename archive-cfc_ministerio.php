@@ -8,12 +8,18 @@
  */
 
 get_header();
+
+// Obtener valores del metabox si es página con template
+$page_id = get_the_ID();
+$hero_titulo = get_post_meta($page_id, 'ministerios_hero_titulo', true) ?: 'Nuestros Ministerios';
+$hero_subtitulo = get_post_meta($page_id, 'ministerios_hero_subtitulo', true) ?: 'Descubre las diferentes formas en las que puedes servir y crecer en nuestra comunidad';
+$hero_imagen = get_post_meta($page_id, 'ministerios_hero_imagen', true) ?: 'https://images.unsplash.com/photo-1609234656388-0ff363383899?w=1920&h=1080&fit=crop';
 ?>
 
     <!-- Hero Section -->
     <section class="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0">
-            <img src="https://images.unsplash.com/photo-1609234656388-0ff363383899?w=1920&h=1080&fit=crop"
+            <img src="<?php echo esc_url($hero_imagen); ?>"
                  alt="Ministerios"
                  class="w-full h-full object-cover">
         </div>
@@ -21,10 +27,10 @@ get_header();
 
         <div class="relative z-10 text-center px-6 max-w-4xl mx-auto">
             <h1 class="text-4xl sm:text-5xl md:text-6xl font-black text-white mb-6" data-aos="fade-up">
-                Nuestros <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-cyan-200">Ministerios</span>
+                <?php echo esc_html($hero_titulo); ?>
             </h1>
             <p class="text-xl text-white/90 max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="100">
-                Descubre las diferentes formas en las que puedes servir y crecer en nuestra comunidad
+                <?php echo esc_html($hero_subtitulo); ?>
             </p>
         </div>
     </section>
@@ -39,13 +45,22 @@ get_header();
                         $delay = 0;
                         while (have_posts()) : the_post();
                     ?>
-                    <!-- Ministerio Card - SOLO VISUAL -->
-                    <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300" data-aos="fade-up" data-aos-delay="<?php echo $delay; ?>">
+                    <!-- Ministerio Card -->
+                    <?php
+                    $whatsapp = get_post_meta(get_the_ID(), 'whatsapp_ministerio', true);
+                    $lider = get_post_meta(get_the_ID(), 'lider_ministerio', true);
+                    $horario = get_post_meta(get_the_ID(), 'horario_reunion', true);
+                    // Fallback al WhatsApp general de la iglesia
+                    if (!$whatsapp) {
+                        $whatsapp = cfc_get_option('church_whatsapp', cfc_default('church_whatsapp'));
+                    }
+                    ?>
+                    <div class="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2" data-aos="fade-up" data-aos-delay="<?php echo $delay; ?>">
                         <!-- Imagen con overlay -->
-                        <div class="relative h-48 overflow-hidden">
+                        <div class="relative h-56 overflow-hidden">
                             <?php
                             if (has_post_thumbnail()) :
-                                the_post_thumbnail('cfc-card', array('class' => 'w-full h-full object-cover'));
+                                the_post_thumbnail('cfc-card', array('class' => 'w-full h-full object-cover group-hover:scale-110 transition-transform duration-500'));
                             else :
                                 $imagen_url = get_post_meta(get_the_ID(), 'imagen_url', true);
                                 if (!$imagen_url) {
@@ -54,18 +69,39 @@ get_header();
                             ?>
                                 <img src="<?php echo esc_url($imagen_url); ?>"
                                      alt="<?php the_title_attribute(); ?>"
-                                     class="w-full h-full object-cover">
+                                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                             <?php endif; ?>
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                            <div class="absolute bottom-0 left-0 right-0 p-4 z-10">
-                                <h3 class="text-xl font-bold text-white"><?php the_title(); ?></h3>
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                            <div class="absolute bottom-0 left-0 right-0 p-5 z-10">
+                                <h3 class="text-xl font-bold text-white mb-1"><?php the_title(); ?></h3>
+                                <?php if ($lider) : ?>
+                                <p class="text-white/80 text-sm"><?php echo esc_html($lider); ?></p>
+                                <?php endif; ?>
                             </div>
                         </div>
-                        <!-- Contenido - SOLO descripción -->
-                        <div class="p-6">
-                            <p class="text-gray-600">
-                                <?php echo cfc_excerpt(25); ?>
+                        <!-- Contenido -->
+                        <div class="p-5">
+                            <p class="text-gray-600 text-sm mb-4 line-clamp-3">
+                                <?php echo cfc_excerpt(20); ?>
                             </p>
+                            <?php if ($horario) : ?>
+                            <div class="flex items-center gap-2 text-gray-500 text-sm mb-4">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span><?php echo esc_html($horario); ?></span>
+                            </div>
+                            <?php endif; ?>
+                            <!-- Botón WhatsApp -->
+                            <a href="https://wa.me/<?php echo esc_attr($whatsapp); ?>?text=<?php echo rawurlencode('Hola, me gustaría saber más sobre el ministerio de ' . get_the_title()); ?>"
+                               target="_blank"
+                               class="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.149-.67.149-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.124-.272-.198-.57-.347z"/>
+                                    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.75.75 0 00.917.918l4.462-1.494A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.487 0-4.807-.798-6.694-2.151l-.472-.33-3.089 1.034 1.034-3.089-.33-.472A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+                                </svg>
+                                Más Información
+                            </a>
                         </div>
                     </div>
                     <?php
@@ -122,20 +158,31 @@ get_header();
                             ),
                         );
 
+                        $default_whatsapp = cfc_get_option('church_whatsapp', cfc_default('church_whatsapp'));
                         foreach ($default_ministerios as $index => $min) :
                     ?>
-                    <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300" data-aos="fade-up" data-aos-delay="<?php echo ($index % 6) * 50; ?>">
-                        <div class="relative h-48 overflow-hidden">
+                    <div class="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2" data-aos="fade-up" data-aos-delay="<?php echo ($index % 6) * 50; ?>">
+                        <div class="relative h-56 overflow-hidden">
                             <img src="<?php echo esc_url($min['image']); ?>"
                                  alt="<?php echo esc_attr($min['title']); ?>"
-                                 class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                            <div class="absolute bottom-0 left-0 right-0 p-4 z-10">
+                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                            <div class="absolute bottom-0 left-0 right-0 p-5 z-10">
                                 <h3 class="text-xl font-bold text-white"><?php echo esc_html($min['title']); ?></h3>
                             </div>
                         </div>
-                        <div class="p-6">
-                            <p class="text-gray-600"><?php echo esc_html($min['desc']); ?></p>
+                        <div class="p-5">
+                            <p class="text-gray-600 text-sm mb-4 line-clamp-3"><?php echo esc_html($min['desc']); ?></p>
+                            <!-- Botón WhatsApp -->
+                            <a href="https://wa.me/<?php echo esc_attr($default_whatsapp); ?>?text=<?php echo rawurlencode('Hola, me gustaría saber más sobre el ministerio de ' . $min['title']); ?>"
+                               target="_blank"
+                               class="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.149-.67.149-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.124-.272-.198-.57-.347z"/>
+                                    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.75.75 0 00.917.918l4.462-1.494A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.487 0-4.807-.798-6.694-2.151l-.472-.33-3.089 1.034 1.034-3.089-.33-.472A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+                                </svg>
+                                Más Información
+                            </a>
                         </div>
                     </div>
                     <?php

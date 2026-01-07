@@ -69,6 +69,28 @@ body {
 }
 
 /* ==========================================
+   LOGOS DEL HEADER
+   ========================================== */
+
+/* Logo blanco visible por defecto (sobre fondo oscuro) */
+.logo-white {
+    opacity: 1;
+}
+
+.logo-blue {
+    opacity: 0;
+}
+
+/* Cuando scrolled: mostrar azul, ocultar blanco */
+#header.scrolled .logo-white {
+    opacity: 0;
+}
+
+#header.scrolled .logo-blue {
+    opacity: 1;
+}
+
+/* ==========================================
    LINKS DE NAVEGACIÓN
    ========================================== */
 

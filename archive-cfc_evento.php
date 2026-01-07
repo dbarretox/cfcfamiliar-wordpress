@@ -6,6 +6,16 @@
  */
 
 get_header();
+
+// Get the Eventos page ID to read metabox values
+$eventos_page = get_page_by_path('eventos');
+$eventos_page_id = $eventos_page ? $eventos_page->ID : 0;
+
+// Get metabox values with defaults
+$calendar_embed = get_post_meta($eventos_page_id, 'eventos_calendar_embed', true) ?: 'https://calendar.google.com/calendar/embed?height=600&wkst=2&bgcolor=%23ffffff&ctz=America%2FPanama&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0&mode=MONTH&src=Y2VudHJvZmFtaWxpYXJjcmlzdGlhbm9AZ21haWwuY29t&color=%234285F4';
+$calendar_subscribe = get_post_meta($eventos_page_id, 'eventos_calendar_subscribe', true) ?: 'https://calendar.google.com/calendar/u/0?cid=Y2VudHJvZmFtaWxpYXJjcmlzdGlhbm9AZ21haWwuY29t';
+$hero_titulo = get_post_meta($eventos_page_id, 'eventos_hero_titulo', true) ?: 'Nuestros Eventos';
+$hero_subtitulo = get_post_meta($eventos_page_id, 'eventos_hero_subtitulo', true) ?: 'Únete a nosotros en actividades que fortalecerán tu fe y comunidad';
 ?>
 
     <!-- Hero Section -->
@@ -19,10 +29,10 @@ get_header();
 
         <div class="relative z-10 text-center px-6 max-w-4xl mx-auto">
             <h1 class="text-4xl sm:text-5xl md:text-6xl font-black text-white mb-6" data-aos="fade-up">
-                Próximos <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-amber-200">Eventos</span>
+                <?php echo esc_html($hero_titulo); ?>
             </h1>
             <p class="text-xl text-white/90 max-w-2xl mx-auto mb-8" data-aos="fade-up" data-aos-delay="100">
-                Únete a nosotros en actividades que fortalecerán tu fe y comunidad
+                <?php echo esc_html($hero_subtitulo); ?>
             </p>
 
             <!-- Botones de acción -->
@@ -32,6 +42,13 @@ get_header();
                     <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
                     </svg>
+                </a>
+
+                <a href="#calendario" class="inline-flex items-center gap-3 px-8 py-4 bg-white/10 backdrop-blur-md border-2 border-white/30 text-white rounded-full font-bold hover:bg-white/20 transition-all duration-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Ver calendario
                 </a>
             </div>
         </div>
@@ -300,6 +317,135 @@ get_header();
                     ?>
                 </div>
                 <?php endif; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- Google Calendar Section -->
+    <section class="py-16 bg-gray-50" id="calendario">
+        <div class="container mx-auto px-6">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">&#128197; Calendario de Eventos</h2>
+                    <p class="text-gray-600 text-lg">
+                        Sincronizado con Google Calendar en tiempo real
+                    </p>
+                </div>
+
+                <!-- Vista Desktop - Calendario Google Embebido -->
+                <div class="hidden lg:block bg-white rounded-3xl p-4 md:p-8 shadow-xl" data-aos="zoom-in">
+                    <div class="rounded-2xl overflow-hidden bg-white shadow-inner">
+                        <iframe
+                            src="<?php echo esc_url($calendar_embed); ?>"
+                            style="border: 0"
+                            width="100%"
+                            height="600"
+                            frameborder="0"
+                            scrolling="no"
+                            class="w-full">
+                        </iframe>
+                    </div>
+                </div>
+
+                <!-- Vista Móvil - Lista de Eventos -->
+                <div class="lg:hidden space-y-4">
+                    <?php
+                    $eventos_mobile = new WP_Query(array(
+                        'post_type' => 'cfc_evento',
+                        'posts_per_page' => 10,
+                        'orderby' => 'meta_value',
+                        'meta_key' => 'fecha_evento',
+                        'order' => 'ASC',
+                        'meta_query' => array(
+                            array(
+                                'key' => 'fecha_evento',
+                                'value' => date('Y-m-d'),
+                                'compare' => '>=',
+                                'type' => 'DATE'
+                            )
+                        )
+                    ));
+
+                    if ($eventos_mobile->have_posts()) :
+                        while ($eventos_mobile->have_posts()) : $eventos_mobile->the_post();
+                            $fecha = cfc_get_field('fecha_evento', get_the_ID(), '');
+                            $hora = cfc_get_field('hora_evento', get_the_ID(), '');
+                            $ubicacion = cfc_get_field('ubicacion_evento', get_the_ID(), '');
+                            $tipo = get_the_terms(get_the_ID(), 'tipo_evento');
+
+                            if ($fecha) {
+                                $fecha_obj = strtotime($fecha);
+                                $meses_es = array('ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC');
+                                $dias_es = array('DOMINGO','LUNES','MARTES','MIÉRCOLES','JUEVES','VIERNES','SÁBADO');
+                                $mes_num = (int)date('n', $fecha_obj) - 1;
+                                $dia_num = (int)date('w', $fecha_obj);
+                            }
+
+                            // Color según tipo de evento
+                            $gradient = 'from-primary to-secondary';
+                            if ($tipo && !is_wp_error($tipo)) {
+                                $tipo_nombre = strtolower($tipo[0]->name);
+                                if (strpos($tipo_nombre, 'joven') !== false || strpos($tipo_nombre, 'juventud') !== false) {
+                                    $gradient = 'from-purple-500 to-pink-500';
+                                } elseif (strpos($tipo_nombre, 'niño') !== false || strpos($tipo_nombre, 'infantil') !== false) {
+                                    $gradient = 'from-yellow-500 to-orange-500';
+                                } elseif (strpos($tipo_nombre, 'oración') !== false) {
+                                    $gradient = 'from-blue-500 to-cyan-500';
+                                }
+                            }
+                    ?>
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden" data-aos="fade-up">
+                        <div class="bg-gradient-to-r <?php echo $gradient; ?> p-4">
+                            <div class="flex items-center justify-between text-white">
+                                <div>
+                                    <?php if ($fecha) : ?>
+                                    <p class="text-xs font-semibold opacity-90"><?php echo $dias_es[$dia_num]; ?></p>
+                                    <p class="text-2xl font-bold"><?php echo date('d', $fecha_obj); ?> <?php echo $meses_es[$mes_num]; ?></p>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xl font-bold"><?php echo $hora ? esc_html($hora) : '10:00 AM'; ?></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="font-bold text-gray-900 mb-2"><?php the_title(); ?></h4>
+                            <?php if (has_excerpt()) : ?>
+                            <p class="text-sm text-gray-600 mb-3"><?php echo cfc_excerpt(15); ?></p>
+                            <?php endif; ?>
+                            <?php if ($ubicacion) : ?>
+                            <div class="flex items-center gap-2 text-xs text-gray-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                </svg>
+                                <span><?php echo esc_html($ubicacion); ?></span>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php
+                        endwhile;
+                        wp_reset_postdata();
+                    else :
+                    ?>
+                    <div class="bg-white p-8 rounded-2xl text-center shadow-lg">
+                        <div class="text-5xl mb-4">&#128197;</div>
+                        <p class="text-gray-600">No hay eventos próximos programados.</p>
+                    </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Botón Suscribirse -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+                    <a href="<?php echo esc_url($calendar_subscribe); ?>"
+                       target="_blank"
+                       class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-full font-semibold hover:shadow-lg transition">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                        </svg>
+                        Suscribirse al calendario
+                    </a>
+                </div>
             </div>
         </div>
     </section>

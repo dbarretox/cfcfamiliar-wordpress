@@ -14,6 +14,7 @@ $hero_image = get_post_meta(get_the_ID(), 'hero_image_url', true);
 $hero_badge = get_post_meta(get_the_ID(), 'hero_badge', true) ?: 'En vivo cada domingo';
 $hero_titulo_1 = get_post_meta(get_the_ID(), 'hero_titulo_1', true) ?: 'Centro Familiar';
 $hero_titulo_2 = get_post_meta(get_the_ID(), 'hero_titulo_2', true) ?: 'Cristiano';
+$default_video = get_template_directory_uri() . '/assets/videos/cfcintrohomepage.mp4';
 
 // Adolescentes
 $adol_titulo = get_post_meta(get_the_ID(), 'adol_titulo', true) ?: 'Adolescentes';
@@ -33,9 +34,9 @@ $jov_imagen = get_post_meta(get_the_ID(), 'jov_imagen', true) ?: 'https://images
     <!-- Hero Section -->
     <section id="inicio" class="relative h-screen flex items-center justify-center overflow-hidden">
         <!-- Video Background -->
-        <?php if ($hero_video) : ?>
+        <?php if ($hero_video || file_exists(get_template_directory() . '/assets/videos/cfcintrohomepage.mp4')) : ?>
         <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover">
-            <source src="<?php echo esc_url($hero_video); ?>" type="video/mp4">
+            <source src="<?php echo esc_url($hero_video ? $hero_video : $default_video); ?>" type="video/mp4">
         </video>
         <?php elseif ($hero_image) : ?>
         <img src="<?php echo esc_url($hero_image); ?>" alt="Hero" class="absolute inset-0 w-full h-full object-cover">

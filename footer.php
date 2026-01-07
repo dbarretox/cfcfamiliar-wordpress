@@ -7,8 +7,10 @@
                 <!-- Columna 1: Logo y descripción -->
                 <div>
                     <div class="flex items-center space-x-3 mb-6">
-                        <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center">
-                            <span class="text-white text-2xl">&#9962;</span>
+                        <div class="w-12 h-12">
+                            <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo-cfc-white.svg'); ?>"
+                                 alt="CFC"
+                                 class="w-full h-full object-contain">
                         </div>
                         <span class="font-bold text-xl">CFC</span>
                     </div>
