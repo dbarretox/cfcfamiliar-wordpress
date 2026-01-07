@@ -439,12 +439,24 @@ add_action('created_categoria_reflexion', 'cfc_save_categoria_reflexion_meta');
 add_action('edited_categoria_reflexion', 'cfc_save_categoria_reflexion_meta');
 
 /**
- * Hide Posts menu from admin (not used in this theme)
+ * Show notice on Posts page (not used in this theme)
  */
-function cfc_remove_posts_menu() {
-    remove_menu_page('edit.php');
+function cfc_posts_not_used_notice() {
+    $screen = get_current_screen();
+    if ($screen && ($screen->id === 'edit-post' || $screen->post_type === 'post')) {
+        ?>
+        <div class="notice notice-info" style="border-left-color: #0083ca; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);">
+            <p style="font-size: 14px;">
+                <strong>Este tema no usa Entradas (Posts).</strong>
+                Usa los Custom Post Types: <a href="<?php echo admin_url('edit.php?post_type=cfc_reflexion'); ?>">Reflexiones</a>,
+                <a href="<?php echo admin_url('edit.php?post_type=cfc_evento'); ?>">Eventos</a>,
+                <a href="<?php echo admin_url('edit.php?post_type=cfc_ministerio'); ?>">Ministerios</a>.
+            </p>
+        </div>
+        <?php
+    }
 }
-add_action('admin_menu', 'cfc_remove_posts_menu');
+add_action('admin_notices', 'cfc_posts_not_used_notice');
 
 /**
  * ACF Options Pages (if ACF is installed)
