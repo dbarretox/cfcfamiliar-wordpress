@@ -52,12 +52,30 @@
                 <div>
                     <h3 class="font-bold text-lg mb-6">Enlaces Rápidos</h3>
                     <nav class="space-y-3">
-                        <a href="<?php echo esc_url(home_url('/visitanos')); ?>" class="block text-gray-400 hover:text-white transition-colors">Visítanos</a>
-                        <a href="<?php echo esc_url(home_url('/quienes-somos')); ?>" class="block text-gray-400 hover:text-white transition-colors">Quiénes Somos</a>
-                        <a href="<?php echo esc_url(get_post_type_archive_link('cfc_ministerio')); ?>" class="block text-gray-400 hover:text-white transition-colors">Ministerios</a>
-                        <a href="<?php echo esc_url(get_post_type_archive_link('cfc_reflexion')); ?>" class="block text-gray-400 hover:text-white transition-colors">Reflexiones</a>
-                        <a href="<?php echo esc_url(get_post_type_archive_link('cfc_evento')); ?>" class="block text-gray-400 hover:text-white transition-colors">Eventos</a>
-                        <a href="<?php echo esc_url(home_url('/dar')); ?>" class="block text-gray-400 hover:text-white transition-colors">Dar</a>
+                        <?php
+                        if (has_nav_menu('footer')) {
+                            wp_nav_menu(array(
+                                'theme_location' => 'footer',
+                                'container'      => false,
+                                'items_wrap'     => '%3$s',
+                                'walker'         => new CFC_Footer_Menu_Walker(),
+                            ));
+                        } elseif (has_nav_menu('primary')) {
+                            // Fallback to primary menu
+                            wp_nav_menu(array(
+                                'theme_location' => 'primary',
+                                'container'      => false,
+                                'items_wrap'     => '%3$s',
+                                'walker'         => new CFC_Footer_Menu_Walker(),
+                            ));
+                        } elseif (current_user_can('edit_theme_options')) {
+                            ?>
+                            <a href="<?php echo esc_url(admin_url('nav-menus.php')); ?>" class="block text-amber-400 hover:text-amber-300 transition-colors">
+                                &#9888;&#65039; Configurar Menú
+                            </a>
+                            <?php
+                        }
+                        ?>
                     </nav>
                 </div>
 

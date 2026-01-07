@@ -681,6 +681,33 @@ function cfc_default($key) {
 }
 
 /**
+ * Theme Changelog / Release Notes
+ */
+function cfc_get_changelog() {
+    return array(
+        '1.0.1' => array(
+            'date' => '2026-01-07',
+            'changes' => array(
+                'Menús dinámicos con soporte para clase CSS "menu-dar"',
+                'Aviso para admins cuando el menú no está configurado',
+                'Notas de versión en CFC Opciones',
+                'Mejoras en la página de opciones',
+            )
+        ),
+        '1.0.0' => array(
+            'date' => '2026-01-07',
+            'changes' => array(
+                'Versión inicial del tema',
+                'Custom Post Types: Eventos, Ministerios, Reflexiones',
+                'Integración con Spotify y YouTube',
+                'Sistema de actualizaciones desde GitHub',
+                'Panel de opciones personalizado',
+            )
+        ),
+    );
+}
+
+/**
  * Disable Gutenberg for Custom Post Types (optional)
  */
 function cfc_disable_gutenberg($use_block_editor, $post_type) {
@@ -1853,6 +1880,44 @@ function cfc_options_page_html() {
             </div>
         </div>
 
+        <!-- Changelog Card -->
+        <div class="cfc-card" style="margin-bottom: 24px;">
+            <div class="cfc-card-header" style="background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); border-bottom: none;">
+                <div class="cfc-card-icon" style="background: rgba(255,255,255,0.2);">
+                    <span class="dashicons dashicons-clipboard" style="color: white;"></span>
+                </div>
+                <div>
+                    <h2 style="color: white;">Notas de Versión</h2>
+                    <p style="color: rgba(255,255,255,0.8);">Historial de cambios del tema</p>
+                </div>
+            </div>
+            <div class="cfc-card-body" style="max-height: 300px; overflow-y: auto;">
+                <?php
+                $changelog = cfc_get_changelog();
+                $current_version = $theme->get('Version');
+                foreach ($changelog as $version => $data) :
+                    $is_current = ($version === $current_version);
+                ?>
+                <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb; <?php echo $is_current ? '' : 'opacity: 0.7;'; ?>">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <span style="background: <?php echo $is_current ? '#10b981' : '#6b7280'; ?>; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                            v<?php echo esc_html($version); ?>
+                        </span>
+                        <?php if ($is_current) : ?>
+                        <span style="background: #dbeafe; color: #1d4ed8; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500;">ACTUAL</span>
+                        <?php endif; ?>
+                        <span style="color: #9ca3af; font-size: 13px;"><?php echo esc_html($data['date']); ?></span>
+                    </div>
+                    <ul style="margin: 0; padding-left: 20px; color: #4b5563; font-size: 14px; line-height: 1.8;">
+                        <?php foreach ($data['changes'] as $change) : ?>
+                        <li><?php echo esc_html($change); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
         <!-- Settings Card -->
         <div class="cfc-card">
             <div class="cfc-card-header">
@@ -2108,6 +2173,15 @@ class CFC_Mobile_Menu_Walker extends Walker_Nav_Menu {
             $output .= '<span class="text-xl font-semibold">' . esc_html($item->title) . '</span>';
             $output .= '</a>';
         }
+    }
+}
+
+/**
+ * Custom Menu Walker for Footer Navigation
+ */
+class CFC_Footer_Menu_Walker extends Walker_Nav_Menu {
+    public function start_el(&$output, $item, $depth = 0, $args = null, $id = 0) {
+        $output .= '<a href="' . esc_url($item->url) . '" class="block text-gray-400 hover:text-white transition-colors">' . esc_html($item->title) . '</a>';
     }
 }
 

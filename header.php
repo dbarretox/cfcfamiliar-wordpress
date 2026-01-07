@@ -38,17 +38,12 @@
                             'items_wrap'     => '%3$s',
                             'walker'         => new CFC_Desktop_Menu_Walker(),
                         ));
-                    } else {
-                        // Fallback if no menu is assigned
+                    } elseif (current_user_can('edit_theme_options')) {
+                        // Admin notice - menu not configured
                         ?>
-                        <a href="<?php echo esc_url(home_url('/visitanos')); ?>" class="nav-link px-4 py-2 rounded-lg font-medium transition-all">Visítanos</a>
-                        <a href="<?php echo esc_url(home_url('/quienes-somos')); ?>" class="nav-link px-4 py-2 rounded-lg font-medium transition-all">Quiénes somos</a>
-                        <a href="<?php echo esc_url(get_post_type_archive_link('cfc_ministerio')); ?>" class="nav-link px-4 py-2 rounded-lg font-medium transition-all">Ministerios</a>
-                        <a href="<?php echo esc_url(get_post_type_archive_link('cfc_reflexion')); ?>" class="nav-link px-4 py-2 rounded-lg font-medium transition-all">Reflexiones</a>
-                        <a href="<?php echo esc_url(get_post_type_archive_link('cfc_evento')); ?>" class="nav-link px-4 py-2 rounded-lg font-medium transition-all">Eventos</a>
-                        <a href="<?php echo esc_url(home_url('/dar')); ?>" class="ml-2 bg-gradient-to-r from-primary to-secondary text-white px-6 py-2.5 rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2">
-                            <span>&#128157;</span>
-                            <span>Dar</span>
+                        <a href="<?php echo esc_url(admin_url('nav-menus.php')); ?>" class="flex items-center gap-2 bg-amber-500/90 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            <span>Configurar Menú Principal</span>
                         </a>
                         <?php
                     }
@@ -90,40 +85,29 @@
             <!-- Menu items -->
             <nav class="flex-1 space-y-2">
                 <?php
-                if (has_nav_menu('primary')) {
+                if (has_nav_menu('mobile')) {
+                    wp_nav_menu(array(
+                        'theme_location' => 'mobile',
+                        'container'      => false,
+                        'items_wrap'     => '%3$s',
+                        'walker'         => new CFC_Mobile_Menu_Walker(),
+                    ));
+                } elseif (has_nav_menu('primary')) {
+                    // Fallback to primary menu
                     wp_nav_menu(array(
                         'theme_location' => 'primary',
                         'container'      => false,
                         'items_wrap'     => '%3$s',
                         'walker'         => new CFC_Mobile_Menu_Walker(),
                     ));
-                } else {
-                    // Fallback if no menu is assigned
+                } elseif (current_user_can('edit_theme_options')) {
+                    // Admin notice - menu not configured
                     ?>
-                    <a href="<?php echo esc_url(home_url('/visitanos')); ?>" class="mobile-menu-item group flex items-center gap-4 text-white px-6 py-4 rounded-xl hover:bg-white/10 transition-all duration-300">
-                        <span class="text-2xl opacity-80 group-hover:opacity-100 transition-opacity">&#128205;</span>
-                        <span class="text-xl font-semibold">Visítanos</span>
+                    <a href="<?php echo esc_url(admin_url('nav-menus.php')); ?>" class="mobile-menu-item group flex items-center gap-4 bg-amber-500/80 text-white px-6 py-4 rounded-xl hover:bg-amber-500 transition-all duration-300">
+                        <span class="text-2xl">&#9888;&#65039;</span>
+                        <span class="text-lg font-semibold">Configurar Menú</span>
                     </a>
-                    <a href="<?php echo esc_url(home_url('/quienes-somos')); ?>" class="mobile-menu-item group flex items-center gap-4 text-white px-6 py-4 rounded-xl hover:bg-white/10 transition-all duration-300">
-                        <span class="text-2xl opacity-80 group-hover:opacity-100 transition-opacity">&#128101;</span>
-                        <span class="text-xl font-semibold">Quiénes Somos</span>
-                    </a>
-                    <a href="<?php echo esc_url(get_post_type_archive_link('cfc_ministerio')); ?>" class="mobile-menu-item group flex items-center gap-4 text-white px-6 py-4 rounded-xl hover:bg-white/10 transition-all duration-300">
-                        <span class="text-2xl opacity-80 group-hover:opacity-100 transition-opacity">&#128591;</span>
-                        <span class="text-xl font-semibold">Ministerios</span>
-                    </a>
-                    <a href="<?php echo esc_url(get_post_type_archive_link('cfc_reflexion')); ?>" class="mobile-menu-item group flex items-center gap-4 text-white px-6 py-4 rounded-xl hover:bg-white/10 transition-all duration-300">
-                        <span class="text-2xl opacity-80 group-hover:opacity-100 transition-opacity">&#128214;</span>
-                        <span class="text-xl font-semibold">Reflexiones</span>
-                    </a>
-                    <a href="<?php echo esc_url(get_post_type_archive_link('cfc_evento')); ?>" class="mobile-menu-item group flex items-center gap-4 text-white px-6 py-4 rounded-xl hover:bg-white/10 transition-all duration-300">
-                        <span class="text-2xl opacity-80 group-hover:opacity-100 transition-opacity">&#127881;</span>
-                        <span class="text-xl font-semibold">Eventos</span>
-                    </a>
-                    <a href="<?php echo esc_url(home_url('/dar')); ?>" class="mobile-menu-item group flex items-center gap-4 bg-white/20 backdrop-blur-md text-white px-6 py-4 rounded-xl hover:bg-white/30 transition-all duration-300 mt-4">
-                        <span class="text-2xl">&#128157;</span>
-                        <span class="text-xl font-bold">Dar</span>
-                    </a>
+                    <p class="text-white/60 text-sm px-6 mt-2">Ve a Apariencia → Menús para crear el menú de navegación.</p>
                     <?php
                 }
                 ?>
