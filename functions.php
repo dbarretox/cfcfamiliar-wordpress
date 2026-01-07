@@ -1725,9 +1725,9 @@ function cfc_add_options_page() {
 add_action('admin_menu', 'cfc_add_options_page');
 
 /**
- * Shared admin styles for CFC pages
+ * Shared admin styles for CFC options pages
  */
-function cfc_admin_styles() {
+function cfc_options_page_styles() {
     ?>
     <style>
         .cfc-options-wrap { max-width: 900px; margin: 0; padding: 20px 20px 20px 0; }
@@ -1826,7 +1826,7 @@ function cfc_info_page_html() {
     $theme_headers = get_file_data(get_template_directory() . '/style.css', array('GitHub Theme URI' => 'GitHub Theme URI'));
     $github_uri = $theme_headers['GitHub Theme URI'];
 
-    cfc_admin_styles();
+    cfc_options_page_styles();
     ?>
     <div class="cfc-options-wrap">
         <!-- Header -->
@@ -2045,7 +2045,7 @@ function cfc_settings_page_html() {
         $values[$key] = get_option('cfc_' . $key, $default);
     }
 
-    cfc_admin_styles();
+    cfc_options_page_styles();
     ?>
     <div class="cfc-options-wrap">
         <?php if ($saved): ?>
@@ -2179,7 +2179,7 @@ function cfc_footer_page_html() {
 
     $footer_description = get_option('cfc_footer_description', cfc_defaults()['footer_description']);
 
-    cfc_admin_styles();
+    cfc_options_page_styles();
     ?>
     <div class="cfc-options-wrap">
         <?php if ($saved): ?>
