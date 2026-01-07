@@ -551,17 +551,13 @@ function cfc_reading_time($post_id = null) {
 
 /**
  * Check if page template is ready (has required content/meta)
- * If not ready, shows 404 page and exits
+ * If not ready, shows setup guide page and exits
  *
  * @param array $required_fields Array of meta field keys that should have values
- * @param bool $require_content Whether the page must have content
+ * @param string $page_name Name of the page for setup guide
+ * @param string $template_label Human readable template name
  */
-function cfc_require_page_setup($required_fields = array(), $require_content = false) {
-    // Skip check for admin users (so they can see and edit the page)
-    if (current_user_can('edit_pages')) {
-        return true;
-    }
-
+function cfc_require_page_setup($required_fields = array(), $page_name = 'Página', $template_label = '') {
     $post_id = get_the_ID();
     $is_ready = true;
 
@@ -580,21 +576,11 @@ function cfc_require_page_setup($required_fields = array(), $require_content = f
         }
     }
 
-    // Check if content is required and exists
-    if ($require_content) {
-        $content = get_post_field('post_content', $post_id);
-        if (empty(trim($content))) {
-            $is_ready = false;
-        }
-    }
-
-    // If not ready, show 404
+    // If not ready, show setup guide
     if (!$is_ready) {
-        global $wp_query;
-        $wp_query->set_404();
-        status_header(404);
-        nocache_headers();
-        include(get_template_directory() . '/404.php');
+        $setup_page_name = $page_name;
+        $setup_template_label = $template_label ?: $page_name;
+        include(get_template_directory() . '/template-parts/setup-required.php');
         exit;
     }
 

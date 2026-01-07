@@ -6,6 +6,20 @@
  * @package CFC_Familiar
  */
 
+// Verificar si existe página con template "Inicio" configurada
+$inicio_page = get_pages(array(
+    'meta_key' => '_wp_page_template',
+    'meta_value' => 'page-inicio.php',
+    'number' => 1
+));
+
+if (empty($inicio_page)) {
+    $setup_page_name = 'Inicio';
+    $setup_template_label = 'Inicio';
+    include(get_template_directory() . '/template-parts/setup-required.php');
+    exit;
+}
+
 get_header();
 
 // Get hero video URL (from options or use local video)

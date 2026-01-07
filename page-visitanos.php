@@ -7,8 +7,8 @@
 
 get_header();
 
-// Verificar que la página esté configurada (requiere al menos un campo de horarios)
-cfc_require_page_setup(array('visitanos_hero_titulo', 'horario_viernes_hora', 'horario_sabado_hora'));
+// Verificar que la página esté configurada
+cfc_require_page_setup(array('visitanos_hero_titulo', 'horario_viernes_hora', 'horario_sabado_hora'), 'Visítanos', 'Visítanos');
 
 $whatsapp = cfc_get_option('church_whatsapp', cfc_default('church_whatsapp'));
 $google_maps = cfc_get_option('google_maps_url', cfc_default('google_maps_url'));

@@ -16,13 +16,12 @@ if (is_post_type_archive('cfc_ministerio') && !is_page()) {
         'number' => 1
     ));
 
-    // Si no hay página, mostrar 404
+    // Si no hay página, mostrar guía de configuración
     if (empty($ministerios_page)) {
-        global $wp_query;
-        $wp_query->set_404();
-        status_header(404);
-        nocache_headers();
-        include(get_template_directory() . '/404.php');
+        $setup_page_name = 'Ministerios';
+        $setup_template = 'page-ministerios.php';
+        $setup_template_label = 'Ministerios';
+        include(get_template_directory() . '/template-parts/setup-required.php');
         exit;
     }
 }

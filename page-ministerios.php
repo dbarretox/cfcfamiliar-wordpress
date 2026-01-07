@@ -7,7 +7,7 @@
  */
 
 // Verificar que la página esté configurada
-cfc_require_page_setup(array('ministerios_hero_titulo'));
+cfc_require_page_setup(array('ministerios_hero_titulo'), 'Ministerios', 'Ministerios');
 
 // Include the archive template
 include(get_template_directory() . '/archive-cfc_ministerio.php');

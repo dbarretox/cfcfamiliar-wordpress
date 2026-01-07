@@ -7,7 +7,7 @@
  */
 
 // Verificar que la página esté configurada
-cfc_require_page_setup(array('eventos_hero_titulo', 'eventos_calendar_embed'));
+cfc_require_page_setup(array('eventos_hero_titulo', 'eventos_calendar_embed'), 'Eventos', 'Eventos');
 
 // Include the archive template
 include(get_template_directory() . '/archive-cfc_evento.php');

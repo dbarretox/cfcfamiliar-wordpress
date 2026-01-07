@@ -13,12 +13,12 @@ if (is_post_type_archive('cfc_reflexion') && !is_page()) {
         'number' => 1
     ));
 
+    // Si no hay página, mostrar guía de configuración
     if (empty($reflexiones_page)) {
-        global $wp_query;
-        $wp_query->set_404();
-        status_header(404);
-        nocache_headers();
-        include(get_template_directory() . '/404.php');
+        $setup_page_name = 'Reflexiones';
+        $setup_template = 'page-reflexiones.php';
+        $setup_template_label = 'Reflexiones';
+        include(get_template_directory() . '/template-parts/setup-required.php');
         exit;
     }
 }
