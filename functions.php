@@ -445,9 +445,9 @@ function cfc_posts_not_used_notice() {
     $screen = get_current_screen();
     if ($screen && ($screen->id === 'edit-post' || $screen->post_type === 'post')) {
         ?>
-        <div class="notice notice-info" style="border-left-color: #0083ca; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);">
+        <div class="notice notice-warning" style="border-left-color: #f59e0b; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);">
             <p style="font-size: 14px;">
-                <strong>Este tema no usa Entradas (Posts).</strong>
+                <strong style="color: #b45309;">Este tema no usa Entradas (Posts).</strong>
                 Usa los Custom Post Types: <a href="<?php echo admin_url('edit.php?post_type=cfc_reflexion'); ?>">Reflexiones</a>,
                 <a href="<?php echo admin_url('edit.php?post_type=cfc_evento'); ?>">Eventos</a>,
                 <a href="<?php echo admin_url('edit.php?post_type=cfc_ministerio'); ?>">Ministerios</a>.
