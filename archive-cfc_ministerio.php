@@ -7,6 +7,28 @@
  * @package CFC_Familiar
  */
 
+// Si es acceso directo al archive (no desde page template), verificar que exista página configurada
+if (is_post_type_archive('cfc_ministerio') && !is_page()) {
+    // Buscar página con template Ministerios
+    $ministerios_page = get_pages(array(
+        'meta_key' => '_wp_page_template',
+        'meta_value' => 'page-ministerios.php',
+        'number' => 1
+    ));
+
+    // Si no hay página o no está configurada, mostrar 404 (excepto para admins)
+    if (!current_user_can('edit_pages')) {
+        if (empty($ministerios_page)) {
+            global $wp_query;
+            $wp_query->set_404();
+            status_header(404);
+            nocache_headers();
+            include(get_template_directory() . '/404.php');
+            exit;
+        }
+    }
+}
+
 get_header();
 
 // Obtener valores del metabox si es página con template
