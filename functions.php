@@ -1676,7 +1676,9 @@ function cfc_options_page_html() {
     }
 
     $theme = wp_get_theme();
-    $github_uri = $theme->get('GitHub Theme URI');
+    // Read custom GitHub Theme URI header
+    $theme_headers = get_file_data(get_template_directory() . '/style.css', array('GitHub Theme URI' => 'GitHub Theme URI'));
+    $github_uri = $theme_headers['GitHub Theme URI'];
     ?>
     <style>
         .cfc-options-wrap { max-width: 1200px; margin: 0; padding: 20px 20px 20px 0; }
@@ -2531,7 +2533,15 @@ function cfc_check_github_release() {
     }
 
     $current_theme = wp_get_theme();
-    $github_uri = $current_theme->get('GitHub Theme URI');
+
+    // Read custom headers from style.css (WordPress doesn't read custom headers by default)
+    $style_file = get_template_directory() . '/style.css';
+    $theme_data = get_file_data($style_file, array(
+        'GitHub Theme URI' => 'GitHub Theme URI',
+        'Update URI' => 'Update URI'
+    ));
+
+    $github_uri = !empty($theme_data['GitHub Theme URI']) ? $theme_data['GitHub Theme URI'] : $theme_data['Update URI'];
 
     if (empty($github_uri)) {
         wp_send_json_error('No se encontró GitHub Theme URI en el tema.');
