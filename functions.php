@@ -1741,6 +1741,132 @@ function cfc_options_page_html() {
 
             <?php submit_button('Guardar Cambios'); ?>
         </form>
+
+        <hr style="margin: 30px 0;">
+
+        <h2 class="title">Información del Tema</h2>
+        <?php
+        $theme = wp_get_theme();
+        $github_uri = $theme->get('GitHub Theme URI');
+        ?>
+        <table class="form-table">
+            <tr>
+                <th>Tema Activo</th>
+                <td><strong><?php echo esc_html($theme->get('Name')); ?></strong></td>
+            </tr>
+            <tr>
+                <th>Versión Instalada</th>
+                <td><code><?php echo esc_html($theme->get('Version')); ?></code></td>
+            </tr>
+            <tr>
+                <th>Autor</th>
+                <td><?php echo esc_html($theme->get('Author')); ?></td>
+            </tr>
+            <?php if ($github_uri) : ?>
+            <tr>
+                <th>Repositorio GitHub</th>
+                <td><a href="<?php echo esc_url($github_uri); ?>" target="_blank"><?php echo esc_html($github_uri); ?></a></td>
+            </tr>
+            <?php endif; ?>
+        </table>
+
+        <h2 class="title">Verificar Actualizaciones</h2>
+        <p class="description">Consulta si hay una nueva versión disponible del tema en GitHub.</p>
+
+        <div id="cfc-update-result" style="margin: 15px 0; padding: 12px 15px; display: none; border-radius: 4px;"></div>
+
+        <p>
+            <button type="button" id="cfc-check-github-update" class="button button-primary" style="margin-right: 10px;">
+                <span class="dashicons dashicons-update" style="margin-top: 4px;"></span>
+                Verificar en GitHub
+            </button>
+            <button type="button" id="cfc-force-wp-update" class="button button-secondary">
+                <span class="dashicons dashicons-wordpress" style="margin-top: 4px;"></span>
+                Verificar en WordPress
+            </button>
+        </p>
+
+        <p class="description" style="margin-top: 10px;">
+            <strong>Nota:</strong> Para que WordPress detecte actualizaciones automáticamente, debes crear un "Release" en GitHub con un tag de versión (ej: v1.0.1).
+        </p>
+
+        <script>
+        jQuery(document).ready(function($) {
+            var nonce = '<?php echo wp_create_nonce('cfc_update_check'); ?>';
+
+            function showResult(message, type) {
+                var colors = {
+                    success: { bg: '#d4edda', border: '#28a745', text: '#155724' },
+                    warning: { bg: '#fff3cd', border: '#ffc107', text: '#856404' },
+                    error: { bg: '#f8d7da', border: '#dc3545', text: '#721c24' },
+                    info: { bg: '#d1ecf1', border: '#17a2b8', text: '#0c5460' }
+                };
+                var c = colors[type] || colors.info;
+                $('#cfc-update-result')
+                    .html(message)
+                    .css({
+                        'background': c.bg,
+                        'border': '1px solid ' + c.border,
+                        'color': c.text,
+                        'display': 'block'
+                    });
+            }
+
+            $('#cfc-check-github-update').on('click', function() {
+                var $btn = $(this);
+                $btn.prop('disabled', true).find('.dashicons').addClass('spin');
+
+                $.post(ajaxurl, {
+                    action: 'cfc_check_github_release',
+                    nonce: nonce
+                }, function(response) {
+                    $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
+                    if (response.success) {
+                        var type = response.data.has_update ? 'warning' : 'success';
+                        var msg = response.data.message;
+                        if (response.data.github_url) {
+                            msg += ' <a href="' + response.data.github_url + '" target="_blank">Ver en GitHub</a>';
+                        }
+                        showResult(msg, type);
+                    } else {
+                        showResult(response.data || 'Error desconocido', 'error');
+                    }
+                }).fail(function() {
+                    $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
+                    showResult('Error de conexión', 'error');
+                });
+            });
+
+            $('#cfc-force-wp-update').on('click', function() {
+                var $btn = $(this);
+                $btn.prop('disabled', true).find('.dashicons').addClass('spin');
+
+                $.post(ajaxurl, {
+                    action: 'cfc_force_update_check',
+                    nonce: nonce
+                }, function(response) {
+                    $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
+                    if (response.success) {
+                        var type = response.data.has_update ? 'warning' : 'success';
+                        var msg = response.data.message;
+                        if (response.data.update_url && response.data.has_update) {
+                            msg += ' <a href="' + response.data.update_url + '">Ir a Temas</a>';
+                        }
+                        showResult(msg, type);
+                    } else {
+                        showResult(response.data || 'Error desconocido', 'error');
+                    }
+                }).fail(function() {
+                    $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
+                    showResult('Error de conexión', 'error');
+                });
+            });
+        });
+        </script>
+        <style>
+            .dashicons.spin { animation: spin 1s linear infinite; }
+            @keyframes spin { 100% { transform: rotate(360deg); } }
+        </style>
     </div>
     <?php
 }
@@ -2195,3 +2321,153 @@ function cfc_create_sample_reflexiones() {
     update_option('cfc_sample_reflexiones_created', true);
 }
 add_action('init', 'cfc_create_sample_reflexiones', 23);
+
+/**
+ * ====================================
+ * GitHub Theme Update Checker
+ * ====================================
+ */
+
+/**
+ * Force WordPress to check for theme updates via AJAX
+ */
+function cfc_force_theme_update_check() {
+    check_ajax_referer('cfc_update_check', 'nonce');
+
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('No tienes permisos para realizar esta acción.');
+    }
+
+    // Delete the transient that stores update info to force fresh check
+    delete_site_transient('update_themes');
+
+    // Force WordPress to check for theme updates
+    wp_update_themes();
+
+    // Get the update info
+    $updates = get_site_transient('update_themes');
+    $theme_slug = get_template();
+    $current_theme = wp_get_theme();
+    $current_version = $current_theme->get('Version');
+
+    // Check if there's an update for our theme
+    if (isset($updates->response[$theme_slug])) {
+        $update_info = $updates->response[$theme_slug];
+        $new_version = $update_info['new_version'] ?? 'desconocida';
+        wp_send_json_success(array(
+            'has_update' => true,
+            'current_version' => $current_version,
+            'new_version' => $new_version,
+            'message' => sprintf('¡Actualización disponible! Versión actual: %s → Nueva versión: %s', $current_version, $new_version),
+            'update_url' => admin_url('themes.php')
+        ));
+    } else {
+        wp_send_json_success(array(
+            'has_update' => false,
+            'current_version' => $current_version,
+            'message' => sprintf('El tema está actualizado (versión %s).', $current_version)
+        ));
+    }
+}
+add_action('wp_ajax_cfc_force_update_check', 'cfc_force_theme_update_check');
+
+/**
+ * Check GitHub for latest release
+ */
+function cfc_check_github_release() {
+    check_ajax_referer('cfc_update_check', 'nonce');
+
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('No tienes permisos para realizar esta acción.');
+    }
+
+    $current_theme = wp_get_theme();
+    $github_uri = $current_theme->get('GitHub Theme URI');
+
+    if (empty($github_uri)) {
+        wp_send_json_error('No se encontró GitHub Theme URI en el tema.');
+    }
+
+    // Extract owner/repo from GitHub URI
+    preg_match('/github\.com\/([^\/]+)\/([^\/]+)/', $github_uri, $matches);
+    if (count($matches) < 3) {
+        wp_send_json_error('URL de GitHub inválida.');
+    }
+
+    $owner = $matches[1];
+    $repo = str_replace('.git', '', $matches[2]);
+
+    // Get latest release from GitHub API
+    $api_url = "https://api.github.com/repos/{$owner}/{$repo}/releases/latest";
+    $response = wp_remote_get($api_url, array(
+        'headers' => array(
+            'Accept' => 'application/vnd.github.v3+json',
+            'User-Agent' => 'WordPress/' . get_bloginfo('version')
+        ),
+        'timeout' => 15
+    ));
+
+    if (is_wp_error($response)) {
+        // Try tags if no releases
+        $tags_url = "https://api.github.com/repos/{$owner}/{$repo}/tags";
+        $response = wp_remote_get($tags_url, array(
+            'headers' => array(
+                'Accept' => 'application/vnd.github.v3+json',
+                'User-Agent' => 'WordPress/' . get_bloginfo('version')
+            ),
+            'timeout' => 15
+        ));
+
+        if (is_wp_error($response)) {
+            wp_send_json_error('Error conectando con GitHub: ' . $response->get_error_message());
+        }
+
+        $tags = json_decode(wp_remote_retrieve_body($response), true);
+        if (empty($tags)) {
+            wp_send_json_success(array(
+                'has_update' => false,
+                'current_version' => $current_theme->get('Version'),
+                'message' => 'No se encontraron releases ni tags en GitHub.',
+                'github_url' => $github_uri
+            ));
+        }
+
+        $latest_tag = $tags[0]['name'];
+        $latest_version = ltrim($latest_tag, 'v');
+    } else {
+        $release = json_decode(wp_remote_retrieve_body($response), true);
+
+        if (isset($release['message']) && $release['message'] === 'Not Found') {
+            // No releases, check commits
+            wp_send_json_success(array(
+                'has_update' => false,
+                'current_version' => $current_theme->get('Version'),
+                'message' => 'No hay releases publicados en GitHub. Usa "Releases" en GitHub para publicar versiones.',
+                'github_url' => $github_uri . '/releases'
+            ));
+        }
+
+        $latest_version = isset($release['tag_name']) ? ltrim($release['tag_name'], 'v') : null;
+    }
+
+    $current_version = $current_theme->get('Version');
+
+    if ($latest_version && version_compare($latest_version, $current_version, '>')) {
+        wp_send_json_success(array(
+            'has_update' => true,
+            'current_version' => $current_version,
+            'new_version' => $latest_version,
+            'message' => sprintf('¡Nueva versión disponible en GitHub! %s → %s', $current_version, $latest_version),
+            'github_url' => $github_uri . '/releases'
+        ));
+    } else {
+        wp_send_json_success(array(
+            'has_update' => false,
+            'current_version' => $current_version,
+            'github_version' => $latest_version ?: 'No disponible',
+            'message' => sprintf('El tema está actualizado (versión %s).', $current_version),
+            'github_url' => $github_uri
+        ));
+    }
+}
+add_action('wp_ajax_cfc_check_github_release', 'cfc_check_github_release');
