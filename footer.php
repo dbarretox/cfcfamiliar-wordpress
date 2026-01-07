@@ -15,7 +15,7 @@
                         <span class="font-bold text-xl">CFC</span>
                     </div>
                     <p class="text-gray-400 text-sm mb-6 leading-relaxed">
-                        Una iglesia donde cada persona encuentra un hogar en la presencia de Dios. Te esperamos con los brazos abiertos.
+                        <?php echo esc_html(cfc_get_option('footer_description', cfc_default('footer_description'))); ?>
                     </p>
                     <!-- Redes Sociales -->
                     <div class="flex items-center gap-4">

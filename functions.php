@@ -670,6 +670,7 @@ function cfc_defaults() {
         'facebook_url'      => '#',
         'instagram_url'     => '#',
         'youtube_live_url'  => '#',
+        'footer_description' => 'Una iglesia donde cada persona encuentra un hogar en la presencia de Dios. Te esperamos con los brazos abiertos.',
     );
 }
 
@@ -1658,7 +1659,8 @@ function cfc_options_page_html() {
         $options = array(
             'church_name', 'church_address', 'church_phone', 'church_email', 'church_whatsapp',
             'google_maps_url', 'service_day', 'service_time',
-            'facebook_url', 'instagram_url', 'youtube_channel', 'youtube_live_url'
+            'facebook_url', 'instagram_url', 'youtube_channel', 'youtube_live_url',
+            'footer_description'
         );
         foreach ($options as $opt) {
             if (isset($_POST[$opt])) {
@@ -1940,6 +1942,21 @@ function cfc_options_page_html() {
                             <div class="cfc-field">
                                 <label for="youtube_live_url">YouTube en Vivo</label>
                                 <input type="url" id="youtube_live_url" name="youtube_live_url" value="<?php echo esc_attr($values['youtube_live_url']); ?>" placeholder="https://youtube.com/@tuiglesia/live">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="cfc-form-section">
+                        <div class="cfc-form-title">
+                            <span class="dashicons dashicons-editor-kitchensink"></span>
+                            Footer (Pie de Página)
+                        </div>
+                        <div class="cfc-form-grid">
+                            <div class="cfc-field" style="grid-column: span 2;">
+                                <label for="footer_description">Descripción del Footer</label>
+                                <textarea id="footer_description" name="footer_description" rows="3" style="padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; width: 100%; resize: vertical;" placeholder="Breve descripción de la iglesia que aparece en el footer"><?php echo esc_textarea($values['footer_description']); ?></textarea>
+                                <span class="hint">Este texto aparece debajo del logo en el pie de página</span>
                             </div>
                         </div>
                     </div>
