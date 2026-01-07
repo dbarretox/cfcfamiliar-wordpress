@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('CFC_VERSION', '1.0.2');
+define('CFC_VERSION', '1.0.3');
 define('CFC_THEME_DIR', get_template_directory());
 define('CFC_THEME_URI', get_template_directory_uri());
 
@@ -685,6 +685,14 @@ function cfc_default($key) {
  */
 function cfc_get_changelog() {
     return array(
+        '1.0.3' => array(
+            'date' => '2026-01-07',
+            'changes' => array(
+                'Nuevo: Menú reorganizado con submenús (Info, Configuraciones, Footer)',
+                'Nuevo: Página separada para configuración del Footer',
+                'Mejora: Panel de información del tema más limpio',
+            )
+        ),
         '1.0.2' => array(
             'date' => '2026-01-07',
             'changes' => array(
@@ -1673,61 +1681,67 @@ add_action('save_post_cfc_equipo', 'cfc_equipo_save');
  * Theme Options Page (native, no ACF needed)
  */
 function cfc_add_options_page() {
+    // Main menu - Info/Updates only
     add_menu_page(
-        'Opciones CFC',
-        'CFC Opciones',
+        'CFC Familiar',
+        'CFC Familiar',
         'manage_options',
-        'cfc-options',
-        'cfc_options_page_html',
+        'cfc-familiar',
+        'cfc_info_page_html',
         'dashicons-admin-home',
         2
+    );
+
+    // Submenu: Info (same as main, but shows in submenu)
+    add_submenu_page(
+        'cfc-familiar',
+        'Información',
+        'Información',
+        'manage_options',
+        'cfc-familiar',
+        'cfc_info_page_html'
+    );
+
+    // Submenu: Configuraciones
+    add_submenu_page(
+        'cfc-familiar',
+        'Configuraciones',
+        'Configuraciones',
+        'manage_options',
+        'cfc-configuraciones',
+        'cfc_settings_page_html'
+    );
+
+    // Submenu: Footer
+    add_submenu_page(
+        'cfc-familiar',
+        'Footer',
+        'Footer',
+        'manage_options',
+        'cfc-footer',
+        'cfc_footer_page_html'
     );
 }
 add_action('admin_menu', 'cfc_add_options_page');
 
-function cfc_options_page_html() {
-    if (!current_user_can('manage_options')) return;
-
-    $saved = false;
-    if (isset($_POST['cfc_options_nonce']) && wp_verify_nonce($_POST['cfc_options_nonce'], 'cfc_options_save')) {
-        $options = array(
-            'church_name', 'church_address', 'church_phone', 'church_email', 'church_whatsapp',
-            'google_maps_url', 'service_day', 'service_time',
-            'facebook_url', 'instagram_url', 'youtube_channel', 'youtube_live_url',
-            'footer_description'
-        );
-        foreach ($options as $opt) {
-            if (isset($_POST[$opt])) {
-                update_option('cfc_' . $opt, sanitize_text_field($_POST[$opt]));
-            }
-        }
-        $saved = true;
-    }
-
-    // Get current values
-    $values = array();
-    $defaults = cfc_defaults();
-    foreach ($defaults as $key => $default) {
-        $values[$key] = get_option('cfc_' . $key, $default);
-    }
-
-    $theme = wp_get_theme();
-    // Read custom GitHub Theme URI header
-    $theme_headers = get_file_data(get_template_directory() . '/style.css', array('GitHub Theme URI' => 'GitHub Theme URI'));
-    $github_uri = $theme_headers['GitHub Theme URI'];
+/**
+ * Shared admin styles for CFC pages
+ */
+function cfc_admin_styles() {
     ?>
     <style>
-        .cfc-options-wrap { max-width: 1200px; margin: 0; padding: 20px 20px 20px 0; }
+        .cfc-options-wrap { max-width: 900px; margin: 0; padding: 20px 20px 20px 0; }
         .cfc-header { background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3b82f6 100%); border-radius: 16px; padding: 30px 40px; margin-bottom: 30px; display: flex; align-items: center; gap: 20px; box-shadow: 0 10px 40px rgba(30, 58, 95, 0.3); }
         .cfc-header-icon { width: 60px; height: 60px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
         .cfc-header-icon svg { width: 32px; height: 32px; fill: white; }
+        .cfc-header-icon .dashicons { font-size: 32px; width: 32px; height: 32px; color: white; }
         .cfc-header-content h1 { color: white; font-size: 28px; font-weight: 600; margin: 0 0 5px 0; }
         .cfc-header-content p { color: rgba(255,255,255,0.8); font-size: 14px; margin: 0; }
 
         .cfc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
         @media (max-width: 1200px) { .cfc-grid { grid-template-columns: 1fr; } }
 
-        .cfc-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; }
+        .cfc-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 24px; }
         .cfc-card-header { padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 12px; }
         .cfc-card-header.update { background: linear-gradient(135deg, #059669 0%, #10b981 100%); border-bottom: none; }
         .cfc-card-header.update h2, .cfc-card-header.update p { color: white; }
@@ -1783,9 +1797,9 @@ function cfc_options_page_html() {
 
         .cfc-field { display: flex; flex-direction: column; }
         .cfc-field label { font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
-        .cfc-field input { padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: all 0.2s; }
-        .cfc-field input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-        .cfc-field input::placeholder { color: #9ca3af; }
+        .cfc-field input, .cfc-field textarea { padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: all 0.2s; width: 100%; }
+        .cfc-field input:focus, .cfc-field textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .cfc-field input::placeholder, .cfc-field textarea::placeholder { color: #9ca3af; }
         .cfc-field .hint { font-size: 11px; color: #9ca3af; margin-top: 4px; }
 
         .cfc-submit-area { padding: 20px 24px; background: #f9fafb; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; }
@@ -1799,20 +1813,30 @@ function cfc_options_page_html() {
         .dashicons.spin { animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
+    <?php
+}
 
+/**
+ * Info Page - Updates, Theme Info, Changelog
+ */
+function cfc_info_page_html() {
+    if (!current_user_can('manage_options')) return;
+
+    $theme = wp_get_theme();
+    $theme_headers = get_file_data(get_template_directory() . '/style.css', array('GitHub Theme URI' => 'GitHub Theme URI'));
+    $github_uri = $theme_headers['GitHub Theme URI'];
+
+    cfc_admin_styles();
+    ?>
     <div class="cfc-options-wrap">
-        <?php if ($saved): ?>
-        <div class="cfc-toast">Cambios guardados correctamente</div>
-        <?php endif; ?>
-
         <!-- Header -->
         <div class="cfc-header">
             <div class="cfc-header-icon">
-                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                <span class="dashicons dashicons-admin-home"></span>
             </div>
             <div class="cfc-header-content">
-                <h1>CFC Opciones</h1>
-                <p>Panel de configuración del tema Centro Familiar Cristiano</p>
+                <h1>CFC Familiar</h1>
+                <p>Panel de información del tema Centro Familiar Cristiano</p>
             </div>
         </div>
 
@@ -1888,7 +1912,7 @@ function cfc_options_page_html() {
         </div>
 
         <!-- Changelog Card -->
-        <div class="cfc-card" style="margin-bottom: 24px;">
+        <div class="cfc-card">
             <div class="cfc-card-header" style="background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); border-bottom: none;">
                 <div class="cfc-card-icon" style="background: rgba(255,255,255,0.2);">
                     <span class="dashicons dashicons-clipboard" style="color: white;"></span>
@@ -1924,20 +1948,125 @@ function cfc_options_page_html() {
                 <?php endforeach; ?>
             </div>
         </div>
+    </div>
+
+    <script>
+    jQuery(document).ready(function($) {
+        var nonce = '<?php echo wp_create_nonce('cfc_update_check'); ?>';
+
+        function showResult(message, type) {
+            $('#cfc-update-result')
+                .html(message)
+                .removeClass('success warning error')
+                .addClass(type)
+                .slideDown(200);
+        }
+
+        $('#cfc-check-github-update').on('click', function() {
+            var $btn = $(this);
+            $btn.prop('disabled', true).find('.dashicons').addClass('spin');
+            $('#cfc-update-result').slideUp(100);
+
+            $.post(ajaxurl, {
+                action: 'cfc_check_github_release',
+                nonce: nonce
+            }, function(response) {
+                $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
+                if (response.success) {
+                    var type = response.data.has_update ? 'warning' : 'success';
+                    var msg = response.data.message;
+                    if (response.data.github_url) {
+                        msg += ' <a href="' + response.data.github_url + '" target="_blank">Ver en GitHub &rarr;</a>';
+                    }
+                    showResult(msg, type);
+                } else {
+                    showResult(response.data || 'Error desconocido', 'error');
+                }
+            }).fail(function() {
+                $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
+                showResult('Error de conexión', 'error');
+            });
+        });
+
+        $('#cfc-force-wp-update').on('click', function() {
+            var $btn = $(this);
+            $btn.prop('disabled', true).find('.dashicons').addClass('spin');
+            $('#cfc-update-result').slideUp(100);
+
+            $.post(ajaxurl, {
+                action: 'cfc_force_update_check',
+                nonce: nonce
+            }, function(response) {
+                $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
+                if (response.success) {
+                    var type = response.data.has_update ? 'warning' : 'success';
+                    var msg = response.data.message;
+                    if (response.data.update_url && response.data.has_update) {
+                        msg += ' <a href="' + response.data.update_url + '">Ir a Temas &rarr;</a>';
+                    }
+                    showResult(msg, type);
+                } else {
+                    showResult(response.data || 'Error desconocido', 'error');
+                }
+            }).fail(function() {
+                $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
+                showResult('Error de conexión', 'error');
+            });
+        });
+    });
+    </script>
+    <?php
+}
+
+/**
+ * Settings Page - Site Configuration
+ */
+function cfc_settings_page_html() {
+    if (!current_user_can('manage_options')) return;
+
+    $saved = false;
+    if (isset($_POST['cfc_settings_nonce']) && wp_verify_nonce($_POST['cfc_settings_nonce'], 'cfc_settings_save')) {
+        $options = array(
+            'church_name', 'church_address', 'church_phone', 'church_email', 'church_whatsapp',
+            'google_maps_url', 'service_day', 'service_time',
+            'facebook_url', 'instagram_url', 'youtube_channel', 'youtube_live_url'
+        );
+        foreach ($options as $opt) {
+            if (isset($_POST[$opt])) {
+                update_option('cfc_' . $opt, sanitize_text_field($_POST[$opt]));
+            }
+        }
+        $saved = true;
+    }
+
+    $values = array();
+    $defaults = cfc_defaults();
+    foreach ($defaults as $key => $default) {
+        $values[$key] = get_option('cfc_' . $key, $default);
+    }
+
+    cfc_admin_styles();
+    ?>
+    <div class="cfc-options-wrap">
+        <?php if ($saved): ?>
+        <div class="cfc-toast">Cambios guardados correctamente</div>
+        <?php endif; ?>
+
+        <!-- Header -->
+        <div class="cfc-header">
+            <div class="cfc-header-icon">
+                <span class="dashicons dashicons-admin-settings"></span>
+            </div>
+            <div class="cfc-header-content">
+                <h1>Configuraciones</h1>
+                <p>Información de la iglesia, horarios y redes sociales</p>
+            </div>
+        </div>
 
         <!-- Settings Card -->
         <div class="cfc-card">
-            <div class="cfc-card-header">
-                <div class="cfc-card-icon blue">
-                    <span class="dashicons dashicons-admin-settings"></span>
-                </div>
-                <div>
-                    <h2>Configuración del Sitio</h2>
-                    <p>Información de la iglesia, horarios y redes sociales</p>
-                </div>
-            </div>
             <form method="post" action="">
-                <?php wp_nonce_field('cfc_options_save', 'cfc_options_nonce'); ?>
+                <?php wp_nonce_field('cfc_settings_save', 'cfc_settings_nonce'); ?>
                 <div class="cfc-card-body">
                     <!-- Church Info -->
                     <div class="cfc-form-section">
@@ -2018,19 +2147,77 @@ function cfc_options_page_html() {
                         </div>
                     </div>
 
-                    <!-- Footer -->
+                </div>
+                <div class="cfc-submit-area">
+                    <button type="submit" class="cfc-submit-btn">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    jQuery(document).ready(function($) {
+        setTimeout(function() { $('.cfc-toast').remove(); }, 3000);
+    });
+    </script>
+    <?php
+}
+
+/**
+ * Footer Page - Footer Settings
+ */
+function cfc_footer_page_html() {
+    if (!current_user_can('manage_options')) return;
+
+    $saved = false;
+    if (isset($_POST['cfc_footer_nonce']) && wp_verify_nonce($_POST['cfc_footer_nonce'], 'cfc_footer_save')) {
+        if (isset($_POST['footer_description'])) {
+            update_option('cfc_footer_description', sanitize_textarea_field($_POST['footer_description']));
+        }
+        $saved = true;
+    }
+
+    $footer_description = get_option('cfc_footer_description', cfc_defaults()['footer_description']);
+
+    cfc_admin_styles();
+    ?>
+    <div class="cfc-options-wrap">
+        <?php if ($saved): ?>
+        <div class="cfc-toast">Cambios guardados correctamente</div>
+        <?php endif; ?>
+
+        <!-- Header -->
+        <div class="cfc-header" style="background: linear-gradient(135deg, #374151 0%, #4b5563 50%, #6b7280 100%);">
+            <div class="cfc-header-icon">
+                <span class="dashicons dashicons-editor-kitchensink"></span>
+            </div>
+            <div class="cfc-header-content">
+                <h1>Footer</h1>
+                <p>Configuración del pie de página del sitio</p>
+            </div>
+        </div>
+
+        <!-- Footer Settings Card -->
+        <div class="cfc-card">
+            <form method="post" action="">
+                <?php wp_nonce_field('cfc_footer_save', 'cfc_footer_nonce'); ?>
+                <div class="cfc-card-body">
                     <div class="cfc-form-section">
                         <div class="cfc-form-title">
-                            <span class="dashicons dashicons-editor-kitchensink"></span>
-                            Footer (Pie de Página)
+                            <span class="dashicons dashicons-text"></span>
+                            Descripción del Footer
                         </div>
                         <div class="cfc-form-grid">
                             <div class="cfc-field" style="grid-column: span 2;">
-                                <label for="footer_description">Descripción del Footer</label>
-                                <textarea id="footer_description" name="footer_description" rows="3" style="padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; width: 100%; resize: vertical;" placeholder="Breve descripción de la iglesia que aparece en el footer"><?php echo esc_textarea($values['footer_description']); ?></textarea>
-                                <span class="hint">Este texto aparece debajo del logo en el pie de página</span>
+                                <label for="footer_description">Texto que aparece bajo el logo</label>
+                                <textarea id="footer_description" name="footer_description" rows="4" placeholder="Breve descripción de la iglesia que aparece en el footer"><?php echo esc_textarea($footer_description); ?></textarea>
+                                <span class="hint">Este texto aparece debajo del logo en el pie de página junto a las redes sociales</span>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="cfc-note" style="margin-top: 16px;">
+                        <strong>Nota:</strong> Las redes sociales, horarios y datos de contacto del footer se configuran en <a href="<?php echo admin_url('admin.php?page=cfc-configuraciones'); ?>">Configuraciones</a>.
                     </div>
                 </div>
                 <div class="cfc-submit-area">
@@ -2042,69 +2229,6 @@ function cfc_options_page_html() {
 
     <script>
     jQuery(document).ready(function($) {
-        var nonce = '<?php echo wp_create_nonce('cfc_update_check'); ?>';
-
-        function showResult(message, type) {
-            $('#cfc-update-result')
-                .html(message)
-                .removeClass('success warning error')
-                .addClass(type)
-                .slideDown(200);
-        }
-
-        $('#cfc-check-github-update').on('click', function() {
-            var $btn = $(this);
-            $btn.prop('disabled', true).find('.dashicons').addClass('spin');
-            $('#cfc-update-result').slideUp(100);
-
-            $.post(ajaxurl, {
-                action: 'cfc_check_github_release',
-                nonce: nonce
-            }, function(response) {
-                $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
-                if (response.success) {
-                    var type = response.data.has_update ? 'warning' : 'success';
-                    var msg = response.data.message;
-                    if (response.data.github_url) {
-                        msg += ' <a href="' + response.data.github_url + '" target="_blank">Ver en GitHub &rarr;</a>';
-                    }
-                    showResult(msg, type);
-                } else {
-                    showResult(response.data || 'Error desconocido', 'error');
-                }
-            }).fail(function() {
-                $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
-                showResult('Error de conexión', 'error');
-            });
-        });
-
-        $('#cfc-force-wp-update').on('click', function() {
-            var $btn = $(this);
-            $btn.prop('disabled', true).find('.dashicons').addClass('spin');
-            $('#cfc-update-result').slideUp(100);
-
-            $.post(ajaxurl, {
-                action: 'cfc_force_update_check',
-                nonce: nonce
-            }, function(response) {
-                $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
-                if (response.success) {
-                    var type = response.data.has_update ? 'warning' : 'success';
-                    var msg = response.data.message;
-                    if (response.data.update_url && response.data.has_update) {
-                        msg += ' <a href="' + response.data.update_url + '">Ir a Temas &rarr;</a>';
-                    }
-                    showResult(msg, type);
-                } else {
-                    showResult(response.data || 'Error desconocido', 'error');
-                }
-            }).fail(function() {
-                $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
-                showResult('Error de conexión', 'error');
-            });
-        });
-
-        // Auto-hide toast
         setTimeout(function() { $('.cfc-toast').remove(); }, 3000);
     });
     </script>
