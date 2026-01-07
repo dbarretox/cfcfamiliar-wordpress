@@ -1181,6 +1181,7 @@ class CFC_Mobile_Menu_Walker extends Walker_Nav_Menu {
  * Include ACF Fields documentation
  */
 require_once CFC_THEME_DIR . '/inc/acf-fields.php';
+require_once CFC_THEME_DIR . '/inc/github-updater.php';
 
 /**
  * Create Sample Events (runs once)
