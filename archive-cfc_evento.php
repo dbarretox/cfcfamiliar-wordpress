@@ -13,7 +13,7 @@ if (is_post_type_archive('cfc_evento') && !is_page()) {
         'number' => 1
     ));
 
-    if (!current_user_can('edit_pages') && empty($eventos_page)) {
+    if (empty($eventos_page)) {
         global $wp_query;
         $wp_query->set_404();
         status_header(404);
