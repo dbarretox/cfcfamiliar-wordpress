@@ -1,0 +1,20 @@
+# WordPress
+*.log
+wp-config.php
+.htaccess
+
+# Dependencies
+node_modules/
+vendor/
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+*.map
