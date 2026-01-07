@@ -7,9 +7,6 @@
 
 get_header();
 
-// Verificar que la página esté configurada
-cfc_require_page_setup(array('quienes_hero_titulo', 'mision', 'vision'), 'Quiénes Somos', 'Quiénes Somos');
-
 // Colores para los badges del equipo
 $colores = array(
     'primary' => array('bg' => 'from-primary to-secondary', 'text' => 'text-primary'),

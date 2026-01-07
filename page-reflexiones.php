@@ -6,8 +6,5 @@
  * @package CFC_Familiar
  */
 
-// Verificar que la página esté configurada
-cfc_require_page_setup(array('reflexiones_hero_titulo'), 'Reflexiones', 'Reflexiones');
-
 // Include the archive template
 include(get_template_directory() . '/archive-cfc_reflexion.php');
