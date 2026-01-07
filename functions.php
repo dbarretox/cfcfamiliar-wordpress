@@ -1653,6 +1653,7 @@ add_action('admin_menu', 'cfc_add_options_page');
 function cfc_options_page_html() {
     if (!current_user_can('manage_options')) return;
 
+    $saved = false;
     if (isset($_POST['cfc_options_nonce']) && wp_verify_nonce($_POST['cfc_options_nonce'], 'cfc_options_save')) {
         $options = array(
             'church_name', 'church_address', 'church_phone', 'church_email', 'church_whatsapp',
@@ -1664,7 +1665,7 @@ function cfc_options_page_html() {
                 update_option('cfc_' . $opt, sanitize_text_field($_POST[$opt]));
             }
         }
-        echo '<div class="notice notice-success"><p>Opciones guardadas correctamente.</p></div>';
+        $saved = true;
     }
 
     // Get current values
@@ -1673,201 +1674,349 @@ function cfc_options_page_html() {
     foreach ($defaults as $key => $default) {
         $values[$key] = get_option('cfc_' . $key, $default);
     }
+
+    $theme = wp_get_theme();
+    $github_uri = $theme->get('GitHub Theme URI');
     ?>
-    <div class="wrap">
-        <h1>Opciones del Tema CFC</h1>
-        <form method="post" action="">
-            <?php wp_nonce_field('cfc_options_save', 'cfc_options_nonce'); ?>
+    <style>
+        .cfc-options-wrap { max-width: 1200px; margin: 0; padding: 20px 20px 20px 0; }
+        .cfc-header { background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3b82f6 100%); border-radius: 16px; padding: 30px 40px; margin-bottom: 30px; display: flex; align-items: center; gap: 20px; box-shadow: 0 10px 40px rgba(30, 58, 95, 0.3); }
+        .cfc-header-icon { width: 60px; height: 60px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+        .cfc-header-icon svg { width: 32px; height: 32px; fill: white; }
+        .cfc-header-content h1 { color: white; font-size: 28px; font-weight: 600; margin: 0 0 5px 0; }
+        .cfc-header-content p { color: rgba(255,255,255,0.8); font-size: 14px; margin: 0; }
 
-            <h2 class="title">Información de la Iglesia</h2>
-            <table class="form-table">
-                <tr>
-                    <th><label for="church_name">Nombre de la Iglesia</label></th>
-                    <td><input type="text" id="church_name" name="church_name" value="<?php echo esc_attr($values['church_name']); ?>" class="regular-text"></td>
-                </tr>
-                <tr>
-                    <th><label for="church_address">Dirección</label></th>
-                    <td><input type="text" id="church_address" name="church_address" value="<?php echo esc_attr($values['church_address']); ?>" class="regular-text"></td>
-                </tr>
-                <tr>
-                    <th><label for="church_phone">Teléfono</label></th>
-                    <td><input type="text" id="church_phone" name="church_phone" value="<?php echo esc_attr($values['church_phone']); ?>" class="regular-text"></td>
-                </tr>
-                <tr>
-                    <th><label for="church_email">Email</label></th>
-                    <td><input type="email" id="church_email" name="church_email" value="<?php echo esc_attr($values['church_email']); ?>" class="regular-text"></td>
-                </tr>
-                <tr>
-                    <th><label for="church_whatsapp">WhatsApp</label></th>
-                    <td><input type="text" id="church_whatsapp" name="church_whatsapp" value="<?php echo esc_attr($values['church_whatsapp']); ?>" class="regular-text" placeholder="50769993772 (sin + ni espacios)"></td>
-                </tr>
-                <tr>
-                    <th><label for="google_maps_url">URL Google Maps</label></th>
-                    <td><input type="url" id="google_maps_url" name="google_maps_url" value="<?php echo esc_attr($values['google_maps_url']); ?>" class="regular-text"></td>
-                </tr>
-            </table>
+        .cfc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+        @media (max-width: 1200px) { .cfc-grid { grid-template-columns: 1fr; } }
 
-            <h2 class="title">Horarios de Servicio</h2>
-            <table class="form-table">
-                <tr>
-                    <th><label for="service_day">Día del Servicio</label></th>
-                    <td><input type="text" id="service_day" name="service_day" value="<?php echo esc_attr($values['service_day']); ?>" class="regular-text" placeholder="Domingo"></td>
-                </tr>
-                <tr>
-                    <th><label for="service_time">Hora del Servicio</label></th>
-                    <td><input type="text" id="service_time" name="service_time" value="<?php echo esc_attr($values['service_time']); ?>" class="regular-text" placeholder="10:00 AM"></td>
-                </tr>
-            </table>
+        .cfc-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; }
+        .cfc-card-header { padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 12px; }
+        .cfc-card-header.update { background: linear-gradient(135deg, #059669 0%, #10b981 100%); border-bottom: none; }
+        .cfc-card-header.update h2, .cfc-card-header.update p { color: white; }
+        .cfc-card-header.theme { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-bottom: none; }
+        .cfc-card-header.theme h2, .cfc-card-header.theme p { color: white; }
+        .cfc-card-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .cfc-card-icon.green { background: rgba(255,255,255,0.2); }
+        .cfc-card-icon.purple { background: rgba(255,255,255,0.2); }
+        .cfc-card-icon.blue { background: #dbeafe; color: #2563eb; }
+        .cfc-card-icon.orange { background: #ffedd5; color: #ea580c; }
+        .cfc-card-icon.pink { background: #fce7f3; color: #db2777; }
+        .cfc-card-icon .dashicons { font-size: 20px; width: 20px; height: 20px; }
+        .cfc-card-icon.green .dashicons, .cfc-card-icon.purple .dashicons { color: white; }
+        .cfc-card-header h2 { font-size: 16px; font-weight: 600; color: #111827; margin: 0; }
+        .cfc-card-header p { font-size: 12px; color: #6b7280; margin: 2px 0 0 0; }
+        .cfc-card-body { padding: 24px; }
 
-            <h2 class="title">Redes Sociales</h2>
-            <table class="form-table">
-                <tr>
-                    <th><label for="facebook_url">Facebook</label></th>
-                    <td><input type="url" id="facebook_url" name="facebook_url" value="<?php echo esc_attr($values['facebook_url']); ?>" class="regular-text" placeholder="https://facebook.com/tuiglesia"></td>
-                </tr>
-                <tr>
-                    <th><label for="instagram_url">Instagram</label></th>
-                    <td><input type="url" id="instagram_url" name="instagram_url" value="<?php echo esc_attr($values['instagram_url']); ?>" class="regular-text" placeholder="https://instagram.com/tuiglesia"></td>
-                </tr>
-                <tr>
-                    <th><label for="youtube_channel">Canal de YouTube</label></th>
-                    <td><input type="url" id="youtube_channel" name="youtube_channel" value="<?php echo esc_attr($values['youtube_channel']); ?>" class="regular-text" placeholder="https://youtube.com/@tuiglesia"></td>
-                </tr>
-                <tr>
-                    <th><label for="youtube_live_url">YouTube en Vivo</label></th>
-                    <td><input type="url" id="youtube_live_url" name="youtube_live_url" value="<?php echo esc_attr($values['youtube_live_url']); ?>" class="regular-text" placeholder="https://youtube.com/@tuiglesia/live"></td>
-                </tr>
-            </table>
+        .cfc-update-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .cfc-update-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; }
+        .cfc-update-btn.github { background: #24292e; color: white; }
+        .cfc-update-btn.github:hover { background: #1a1e22; transform: translateY(-1px); }
+        .cfc-update-btn.wp { background: #0073aa; color: white; }
+        .cfc-update-btn.wp:hover { background: #005a87; transform: translateY(-1px); }
+        .cfc-update-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        .cfc-update-btn .dashicons { font-size: 18px; width: 18px; height: 18px; }
 
-            <?php submit_button('Guardar Cambios'); ?>
-        </form>
+        #cfc-update-result { padding: 14px 16px; border-radius: 10px; font-size: 14px; display: none; margin-bottom: 16px; }
+        #cfc-update-result.success { background: #d1fae5; border: 1px solid #10b981; color: #065f46; }
+        #cfc-update-result.warning { background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; }
+        #cfc-update-result.error { background: #fee2e2; border: 1px solid #ef4444; color: #991b1b; }
+        #cfc-update-result a { color: inherit; font-weight: 600; }
 
-        <hr style="margin: 30px 0;">
+        .cfc-note { background: #f3f4f6; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #4b5563; }
+        .cfc-note strong { color: #374151; }
 
-        <h2 class="title">Información del Tema</h2>
-        <?php
-        $theme = wp_get_theme();
-        $github_uri = $theme->get('GitHub Theme URI');
-        ?>
-        <table class="form-table">
-            <tr>
-                <th>Tema Activo</th>
-                <td><strong><?php echo esc_html($theme->get('Name')); ?></strong></td>
-            </tr>
-            <tr>
-                <th>Versión Instalada</th>
-                <td><code><?php echo esc_html($theme->get('Version')); ?></code></td>
-            </tr>
-            <tr>
-                <th>Autor</th>
-                <td><?php echo esc_html($theme->get('Author')); ?></td>
-            </tr>
-            <?php if ($github_uri) : ?>
-            <tr>
-                <th>Repositorio GitHub</th>
-                <td><a href="<?php echo esc_url($github_uri); ?>" target="_blank"><?php echo esc_html($github_uri); ?></a></td>
-            </tr>
-            <?php endif; ?>
-        </table>
+        .cfc-theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .cfc-theme-item { background: #f9fafb; border-radius: 10px; padding: 16px; }
+        .cfc-theme-item.full { grid-column: span 2; }
+        .cfc-theme-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 4px; font-weight: 500; }
+        .cfc-theme-value { font-size: 15px; color: #111827; font-weight: 500; }
+        .cfc-theme-value code { background: #e5e7eb; padding: 2px 8px; border-radius: 4px; font-size: 14px; }
+        .cfc-theme-value a { color: #2563eb; text-decoration: none; }
+        .cfc-theme-value a:hover { text-decoration: underline; }
 
-        <h2 class="title">Verificar Actualizaciones</h2>
-        <p class="description">Consulta si hay una nueva versión disponible del tema en GitHub.</p>
+        .cfc-form-section { margin-bottom: 24px; }
+        .cfc-form-section:last-child { margin-bottom: 0; }
+        .cfc-form-title { font-size: 13px; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .cfc-form-title .dashicons { font-size: 16px; width: 16px; height: 16px; color: #6b7280; }
 
-        <div id="cfc-update-result" style="margin: 15px 0; padding: 12px 15px; display: none; border-radius: 4px;"></div>
+        .cfc-form-grid { display: grid; gap: 16px; }
+        .cfc-form-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+        @media (max-width: 600px) { .cfc-form-grid.cols-2 { grid-template-columns: 1fr; } }
 
-        <p>
-            <button type="button" id="cfc-check-github-update" class="button button-primary" style="margin-right: 10px;">
-                <span class="dashicons dashicons-update" style="margin-top: 4px;"></span>
-                Verificar en GitHub
-            </button>
-            <button type="button" id="cfc-force-wp-update" class="button button-secondary">
-                <span class="dashicons dashicons-wordpress" style="margin-top: 4px;"></span>
-                Verificar en WordPress
-            </button>
-        </p>
+        .cfc-field { display: flex; flex-direction: column; }
+        .cfc-field label { font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+        .cfc-field input { padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: all 0.2s; }
+        .cfc-field input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .cfc-field input::placeholder { color: #9ca3af; }
+        .cfc-field .hint { font-size: 11px; color: #9ca3af; margin-top: 4px; }
 
-        <p class="description" style="margin-top: 10px;">
-            <strong>Nota:</strong> Para que WordPress detecte actualizaciones automáticamente, debes crear un "Release" en GitHub con un tag de versión (ej: v1.0.1).
-        </p>
+        .cfc-submit-area { padding: 20px 24px; background: #f9fafb; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; }
+        .cfc-submit-btn { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .cfc-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
 
-        <script>
-        jQuery(document).ready(function($) {
-            var nonce = '<?php echo wp_create_nonce('cfc_update_check'); ?>';
+        .cfc-toast { position: fixed; top: 50px; right: 20px; background: #10b981; color: white; padding: 14px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 9999; animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards; }
+        @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 
-            function showResult(message, type) {
-                var colors = {
-                    success: { bg: '#d4edda', border: '#28a745', text: '#155724' },
-                    warning: { bg: '#fff3cd', border: '#ffc107', text: '#856404' },
-                    error: { bg: '#f8d7da', border: '#dc3545', text: '#721c24' },
-                    info: { bg: '#d1ecf1', border: '#17a2b8', text: '#0c5460' }
-                };
-                var c = colors[type] || colors.info;
-                $('#cfc-update-result')
-                    .html(message)
-                    .css({
-                        'background': c.bg,
-                        'border': '1px solid ' + c.border,
-                        'color': c.text,
-                        'display': 'block'
-                    });
-            }
+        .dashicons.spin { animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
 
-            $('#cfc-check-github-update').on('click', function() {
-                var $btn = $(this);
-                $btn.prop('disabled', true).find('.dashicons').addClass('spin');
+    <div class="cfc-options-wrap">
+        <?php if ($saved): ?>
+        <div class="cfc-toast">Cambios guardados correctamente</div>
+        <?php endif; ?>
 
-                $.post(ajaxurl, {
-                    action: 'cfc_check_github_release',
-                    nonce: nonce
-                }, function(response) {
-                    $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
-                    if (response.success) {
-                        var type = response.data.has_update ? 'warning' : 'success';
-                        var msg = response.data.message;
-                        if (response.data.github_url) {
-                            msg += ' <a href="' + response.data.github_url + '" target="_blank">Ver en GitHub</a>';
-                        }
-                        showResult(msg, type);
-                    } else {
-                        showResult(response.data || 'Error desconocido', 'error');
+        <!-- Header -->
+        <div class="cfc-header">
+            <div class="cfc-header-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            <div class="cfc-header-content">
+                <h1>CFC Opciones</h1>
+                <p>Panel de configuración del tema Centro Familiar Cristiano</p>
+            </div>
+        </div>
+
+        <!-- Top Row: Updates & Theme Info -->
+        <div class="cfc-grid">
+            <!-- Updates Card -->
+            <div class="cfc-card">
+                <div class="cfc-card-header update">
+                    <div class="cfc-card-icon green">
+                        <span class="dashicons dashicons-update"></span>
+                    </div>
+                    <div>
+                        <h2>Actualizaciones</h2>
+                        <p>Verifica si hay nuevas versiones disponibles</p>
+                    </div>
+                </div>
+                <div class="cfc-card-body">
+                    <div id="cfc-update-result"></div>
+                    <div class="cfc-update-grid">
+                        <button type="button" id="cfc-check-github-update" class="cfc-update-btn github">
+                            <span class="dashicons dashicons-github"></span>
+                            Verificar en GitHub
+                        </button>
+                        <button type="button" id="cfc-force-wp-update" class="cfc-update-btn wp">
+                            <span class="dashicons dashicons-wordpress"></span>
+                            Verificar en WordPress
+                        </button>
+                    </div>
+                    <div class="cfc-note">
+                        <strong>Tip:</strong> Crea un "Release" en GitHub con un tag de versión (ej: v1.0.1) para habilitar actualizaciones automáticas.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme Info Card -->
+            <div class="cfc-card">
+                <div class="cfc-card-header theme">
+                    <div class="cfc-card-icon purple">
+                        <span class="dashicons dashicons-admin-appearance"></span>
+                    </div>
+                    <div>
+                        <h2>Información del Tema</h2>
+                        <p>Detalles técnicos del tema activo</p>
+                    </div>
+                </div>
+                <div class="cfc-card-body">
+                    <div class="cfc-theme-grid">
+                        <div class="cfc-theme-item">
+                            <div class="cfc-theme-label">Tema</div>
+                            <div class="cfc-theme-value"><?php echo esc_html($theme->get('Name')); ?></div>
+                        </div>
+                        <div class="cfc-theme-item">
+                            <div class="cfc-theme-label">Versión</div>
+                            <div class="cfc-theme-value"><code><?php echo esc_html($theme->get('Version')); ?></code></div>
+                        </div>
+                        <div class="cfc-theme-item">
+                            <div class="cfc-theme-label">Autor</div>
+                            <div class="cfc-theme-value"><?php echo esc_html($theme->get('Author')); ?></div>
+                        </div>
+                        <div class="cfc-theme-item">
+                            <div class="cfc-theme-label">PHP Requerido</div>
+                            <div class="cfc-theme-value"><?php echo esc_html($theme->get('RequiresPHP') ?: '7.4+'); ?></div>
+                        </div>
+                        <?php if ($github_uri) : ?>
+                        <div class="cfc-theme-item full">
+                            <div class="cfc-theme-label">Repositorio</div>
+                            <div class="cfc-theme-value"><a href="<?php echo esc_url($github_uri); ?>" target="_blank"><?php echo esc_html($github_uri); ?></a></div>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Card -->
+        <div class="cfc-card">
+            <div class="cfc-card-header">
+                <div class="cfc-card-icon blue">
+                    <span class="dashicons dashicons-admin-settings"></span>
+                </div>
+                <div>
+                    <h2>Configuración del Sitio</h2>
+                    <p>Información de la iglesia, horarios y redes sociales</p>
+                </div>
+            </div>
+            <form method="post" action="">
+                <?php wp_nonce_field('cfc_options_save', 'cfc_options_nonce'); ?>
+                <div class="cfc-card-body">
+                    <!-- Church Info -->
+                    <div class="cfc-form-section">
+                        <div class="cfc-form-title">
+                            <span class="dashicons dashicons-building"></span>
+                            Información de la Iglesia
+                        </div>
+                        <div class="cfc-form-grid cols-2">
+                            <div class="cfc-field">
+                                <label for="church_name">Nombre de la Iglesia</label>
+                                <input type="text" id="church_name" name="church_name" value="<?php echo esc_attr($values['church_name']); ?>" placeholder="Centro Familiar Cristiano">
+                            </div>
+                            <div class="cfc-field">
+                                <label for="church_email">Correo Electrónico</label>
+                                <input type="email" id="church_email" name="church_email" value="<?php echo esc_attr($values['church_email']); ?>" placeholder="info@tuiglesia.com">
+                            </div>
+                            <div class="cfc-field">
+                                <label for="church_phone">Teléfono</label>
+                                <input type="text" id="church_phone" name="church_phone" value="<?php echo esc_attr($values['church_phone']); ?>" placeholder="+507 123-4567">
+                            </div>
+                            <div class="cfc-field">
+                                <label for="church_whatsapp">WhatsApp</label>
+                                <input type="text" id="church_whatsapp" name="church_whatsapp" value="<?php echo esc_attr($values['church_whatsapp']); ?>" placeholder="50712345678">
+                                <span class="hint">Sin espacios ni símbolos (ej: 50712345678)</span>
+                            </div>
+                            <div class="cfc-field" style="grid-column: span 2;">
+                                <label for="church_address">Dirección</label>
+                                <input type="text" id="church_address" name="church_address" value="<?php echo esc_attr($values['church_address']); ?>" placeholder="Calle Principal, Ciudad, País">
+                            </div>
+                            <div class="cfc-field" style="grid-column: span 2;">
+                                <label for="google_maps_url">URL de Google Maps</label>
+                                <input type="url" id="google_maps_url" name="google_maps_url" value="<?php echo esc_attr($values['google_maps_url']); ?>" placeholder="https://maps.google.com/...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Service Times -->
+                    <div class="cfc-form-section">
+                        <div class="cfc-form-title">
+                            <span class="dashicons dashicons-clock"></span>
+                            Horarios de Servicio
+                        </div>
+                        <div class="cfc-form-grid cols-2">
+                            <div class="cfc-field">
+                                <label for="service_day">Día del Servicio</label>
+                                <input type="text" id="service_day" name="service_day" value="<?php echo esc_attr($values['service_day']); ?>" placeholder="Domingo">
+                            </div>
+                            <div class="cfc-field">
+                                <label for="service_time">Hora del Servicio</label>
+                                <input type="text" id="service_time" name="service_time" value="<?php echo esc_attr($values['service_time']); ?>" placeholder="10:00 AM">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Social Media -->
+                    <div class="cfc-form-section">
+                        <div class="cfc-form-title">
+                            <span class="dashicons dashicons-share"></span>
+                            Redes Sociales
+                        </div>
+                        <div class="cfc-form-grid cols-2">
+                            <div class="cfc-field">
+                                <label for="facebook_url">Facebook</label>
+                                <input type="url" id="facebook_url" name="facebook_url" value="<?php echo esc_attr($values['facebook_url']); ?>" placeholder="https://facebook.com/tuiglesia">
+                            </div>
+                            <div class="cfc-field">
+                                <label for="instagram_url">Instagram</label>
+                                <input type="url" id="instagram_url" name="instagram_url" value="<?php echo esc_attr($values['instagram_url']); ?>" placeholder="https://instagram.com/tuiglesia">
+                            </div>
+                            <div class="cfc-field">
+                                <label for="youtube_channel">Canal de YouTube</label>
+                                <input type="url" id="youtube_channel" name="youtube_channel" value="<?php echo esc_attr($values['youtube_channel']); ?>" placeholder="https://youtube.com/@tuiglesia">
+                            </div>
+                            <div class="cfc-field">
+                                <label for="youtube_live_url">YouTube en Vivo</label>
+                                <input type="url" id="youtube_live_url" name="youtube_live_url" value="<?php echo esc_attr($values['youtube_live_url']); ?>" placeholder="https://youtube.com/@tuiglesia/live">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="cfc-submit-area">
+                    <button type="submit" class="cfc-submit-btn">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    jQuery(document).ready(function($) {
+        var nonce = '<?php echo wp_create_nonce('cfc_update_check'); ?>';
+
+        function showResult(message, type) {
+            $('#cfc-update-result')
+                .html(message)
+                .removeClass('success warning error')
+                .addClass(type)
+                .slideDown(200);
+        }
+
+        $('#cfc-check-github-update').on('click', function() {
+            var $btn = $(this);
+            $btn.prop('disabled', true).find('.dashicons').addClass('spin');
+            $('#cfc-update-result').slideUp(100);
+
+            $.post(ajaxurl, {
+                action: 'cfc_check_github_release',
+                nonce: nonce
+            }, function(response) {
+                $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
+                if (response.success) {
+                    var type = response.data.has_update ? 'warning' : 'success';
+                    var msg = response.data.message;
+                    if (response.data.github_url) {
+                        msg += ' <a href="' + response.data.github_url + '" target="_blank">Ver en GitHub &rarr;</a>';
                     }
-                }).fail(function() {
-                    $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
-                    showResult('Error de conexión', 'error');
-                });
-            });
-
-            $('#cfc-force-wp-update').on('click', function() {
-                var $btn = $(this);
-                $btn.prop('disabled', true).find('.dashicons').addClass('spin');
-
-                $.post(ajaxurl, {
-                    action: 'cfc_force_update_check',
-                    nonce: nonce
-                }, function(response) {
-                    $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
-                    if (response.success) {
-                        var type = response.data.has_update ? 'warning' : 'success';
-                        var msg = response.data.message;
-                        if (response.data.update_url && response.data.has_update) {
-                            msg += ' <a href="' + response.data.update_url + '">Ir a Temas</a>';
-                        }
-                        showResult(msg, type);
-                    } else {
-                        showResult(response.data || 'Error desconocido', 'error');
-                    }
-                }).fail(function() {
-                    $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
-                    showResult('Error de conexión', 'error');
-                });
+                    showResult(msg, type);
+                } else {
+                    showResult(response.data || 'Error desconocido', 'error');
+                }
+            }).fail(function() {
+                $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
+                showResult('Error de conexión', 'error');
             });
         });
-        </script>
-        <style>
-            .dashicons.spin { animation: spin 1s linear infinite; }
-            @keyframes spin { 100% { transform: rotate(360deg); } }
-        </style>
-    </div>
+
+        $('#cfc-force-wp-update').on('click', function() {
+            var $btn = $(this);
+            $btn.prop('disabled', true).find('.dashicons').addClass('spin');
+            $('#cfc-update-result').slideUp(100);
+
+            $.post(ajaxurl, {
+                action: 'cfc_force_update_check',
+                nonce: nonce
+            }, function(response) {
+                $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
+                if (response.success) {
+                    var type = response.data.has_update ? 'warning' : 'success';
+                    var msg = response.data.message;
+                    if (response.data.update_url && response.data.has_update) {
+                        msg += ' <a href="' + response.data.update_url + '">Ir a Temas &rarr;</a>';
+                    }
+                    showResult(msg, type);
+                } else {
+                    showResult(response.data || 'Error desconocido', 'error');
+                }
+            }).fail(function() {
+                $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
+                showResult('Error de conexión', 'error');
+            });
+        });
+
+        // Auto-hide toast
+        setTimeout(function() { $('.cfc-toast').remove(); }, 3000);
+    });
+    </script>
     <?php
 }
 
