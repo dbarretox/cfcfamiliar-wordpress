@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('CFC_VERSION', '1.0.0');
+define('CFC_VERSION', '1.0.2');
 define('CFC_THEME_DIR', get_template_directory());
 define('CFC_THEME_URI', get_template_directory_uri());
 
@@ -685,6 +685,13 @@ function cfc_default($key) {
  */
 function cfc_get_changelog() {
     return array(
+        '1.0.2' => array(
+            'date' => '2026-01-07',
+            'changes' => array(
+                'Fix: Screenshot visible en pantalla de actualizaciones',
+                'Fix: Información del tema con valores fallback',
+            )
+        ),
         '1.0.1' => array(
             'date' => '2026-01-07',
             'changes' => array(

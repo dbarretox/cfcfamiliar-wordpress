@@ -158,19 +158,27 @@ class CFC_GitHub_Updater {
 
         $github_version = ltrim($release->tag_name, 'v');
 
+        // Screenshot URL from GitHub raw content
+        $screenshot_url = sprintf(
+            'https://raw.githubusercontent.com/%s/%s/main/screenshot.png',
+            $this->github_username,
+            $this->github_repo
+        );
+
         $result = (object) array(
-            'name'           => $this->theme_data->get('Name'),
+            'name'           => $this->theme_data->get('Name') ?: 'CFC Familiar',
             'slug'           => $this->slug,
             'version'        => $github_version,
-            'author'         => $this->theme_data->get('Author'),
-            'author_profile' => $this->theme_data->get('AuthorURI'),
-            'homepage'       => $this->theme_data->get('ThemeURI'),
-            'requires'       => $this->theme_data->get('RequiresWP'),
-            'requires_php'   => $this->theme_data->get('RequiresPHP'),
+            'author'         => $this->theme_data->get('Author') ?: 'DBarreto',
+            'author_profile' => $this->theme_data->get('AuthorURI') ?: 'https://dbarreto.net',
+            'homepage'       => $this->theme_data->get('ThemeURI') ?: 'https://cfcfamiliar.com',
+            'requires'       => $this->theme_data->get('RequiresWP') ?: '6.0',
+            'requires_php'   => $this->theme_data->get('RequiresPHP') ?: '7.4',
             'downloaded'     => 0,
             'last_updated'   => $release->published_at,
+            'screenshot_url' => $screenshot_url,
             'sections'       => array(
-                'description' => $this->theme_data->get('Description'),
+                'description' => $this->theme_data->get('Description') ?: 'Tema personalizado para Centro Familiar Cristiano.',
                 'changelog'   => $this->parse_changelog($release->body),
             ),
             'download_link'  => $this->get_download_url($release),
