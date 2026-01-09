@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('CFC_VERSION', '1.0.3');
+define('CFC_VERSION', '1.0.4');
 define('CFC_THEME_DIR', get_template_directory());
 define('CFC_THEME_URI', get_template_directory_uri());
 
@@ -843,8 +843,9 @@ function cfc_add_metaboxes() {
     add_meta_box('cfc_quienes_hero', 'Hero Section', 'cfc_quienes_hero_html', 'page', 'normal', 'high');
     add_meta_box('cfc_quienes_mision', 'Misión y Visión', 'cfc_quienes_mision_html', 'page', 'normal', 'high');
 
-    // Template INICIO - 3 metaboxes
+    // Template INICIO - 4 metaboxes
     add_meta_box('cfc_inicio_hero', 'Hero Section', 'cfc_inicio_hero_html', 'page', 'normal', 'high');
+    add_meta_box('cfc_inicio_ubicacion', 'Localizaciones y Horarios', 'cfc_inicio_ubicacion_html', 'page', 'normal', 'high');
     add_meta_box('cfc_inicio_adolescentes', 'Sección Adolescentes', 'cfc_inicio_adolescentes_html', 'page', 'normal', 'high');
     add_meta_box('cfc_inicio_jovenes', 'Sección Jóvenes', 'cfc_inicio_jovenes_html', 'page', 'normal', 'high');
 
@@ -1136,6 +1137,25 @@ function cfc_inicio_jovenes_html($post) {
 }
 
 /**
+ * Template INICIO: Ubicación y Horarios
+ */
+function cfc_inicio_ubicacion_html($post) {
+    wp_nonce_field('cfc_page_fields_save', 'cfc_page_fields_nonce');
+    $direccion = get_post_meta($post->ID, 'ubicacion_direccion', true);
+    $default_direccion = cfc_get_option('church_address', cfc_default('church_address'));
+    ?>
+    <p class="description" style="margin-bottom: 15px;">Estos campos permiten sobrescribir los valores globales de Configuraciones solo para esta página.</p>
+    <div class="cfc-metabox-grid">
+        <div class="cfc-metabox-field full-width">
+            <label for="ubicacion_direccion">Dirección</label>
+            <input type="text" id="ubicacion_direccion" name="ubicacion_direccion" value="<?php echo esc_attr($direccion); ?>" placeholder="<?php echo esc_attr($default_direccion); ?>">
+            <p class="description">Dejar vacío para usar: <?php echo esc_html($default_direccion); ?></p>
+        </div>
+    </div>
+    <?php
+}
+
+/**
  * Template EVENTOS: Google Calendar
  */
 function cfc_eventos_calendar_html($post) {
@@ -1251,10 +1271,11 @@ function cfc_page_fields_save($post_id) {
         // Quienes Somos - Hero + Mision
         'quienes_hero_titulo', 'quienes_hero_subtitulo', 'quienes_hero_imagen',
         'mision', 'vision',
-        // Inicio - Hero + Adolescentes + Jovenes
+        // Inicio - Hero + Adolescentes + Jovenes + Ubicacion
         'hero_video_url', 'hero_image_url', 'hero_badge', 'hero_titulo_1', 'hero_titulo_2',
         'adol_titulo', 'adol_desc', 'adol_edad', 'adol_horario', 'adol_imagen',
         'jov_titulo', 'jov_desc', 'jov_edad', 'jov_horario', 'jov_imagen',
+        'ubicacion_direccion',
         // Eventos - Hero + Calendar
         'eventos_hero_titulo', 'eventos_hero_subtitulo', 'eventos_hero_imagen',
         'eventos_calendar_embed', 'eventos_calendar_subscribe',
@@ -1285,7 +1306,7 @@ function cfc_page_metaboxes_visibility_script() {
             'dar': ['cfc_dar_hero', 'cfc_dar_banco'],
             'visitanos': ['cfc_visitanos_hero', 'cfc_visitanos_horarios', 'cfc_visitanos_galeria'],
             'quienes-somos': ['cfc_quienes_hero', 'cfc_quienes_mision'],
-            'inicio': ['cfc_inicio_hero', 'cfc_inicio_adolescentes', 'cfc_inicio_jovenes'],
+            'inicio': ['cfc_inicio_hero', 'cfc_inicio_ubicacion', 'cfc_inicio_adolescentes', 'cfc_inicio_jovenes'],
             'eventos': ['cfc_eventos_hero', 'cfc_eventos_calendar'],
             'ministerios': ['cfc_ministerios_hero'],
             'reflexiones': ['cfc_reflexiones_hero']
@@ -1363,6 +1384,7 @@ function cfc_evento_fecha_html($post) {
     $hora_fin = get_post_meta($post->ID, 'hora_fin_evento', true);
     $ubicacion = get_post_meta($post->ID, 'ubicacion_evento', true);
     $maps_url = get_post_meta($post->ID, 'maps_url', true);
+    $mantener_visible = get_post_meta($post->ID, 'mantener_visible', true);
     ?>
     <div class="cfc-metabox-grid">
         <div class="cfc-metabox-field">
@@ -1394,6 +1416,14 @@ function cfc_evento_fecha_html($post) {
         <div class="cfc-metabox-field">
             <label for="maps_url">URL Google Maps <small>(opcional)</small></label>
             <input type="url" id="maps_url" name="maps_url" value="<?php echo esc_attr($maps_url); ?>" placeholder="https://maps.google.com/...">
+        </div>
+
+        <div class="cfc-metabox-field full-width" style="background: #f0f7ff; padding: 12px; border-radius: 8px; border: 1px solid #c5d9f1;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0;">
+                <input type="checkbox" id="mantener_visible" name="mantener_visible" value="1" <?php checked($mantener_visible, '1'); ?> style="width: 18px; height: 18px;">
+                <span style="font-weight: 600;">Mantener visible siempre</span>
+            </label>
+            <p class="description" style="margin: 8px 0 0 28px;">Si no está marcado, el evento se ocultará automáticamente después de la fecha</p>
         </div>
     </div>
     <?php
@@ -1456,6 +1486,10 @@ function cfc_evento_save($post_id) {
             update_post_meta($post_id, $field, sanitize_text_field($_POST[$field]));
         }
     }
+
+    // Checkbox: mantener visible siempre
+    $mantener_visible = isset($_POST['mantener_visible']) ? '1' : '0';
+    update_post_meta($post_id, 'mantener_visible', $mantener_visible);
 }
 add_action('save_post_cfc_evento', 'cfc_evento_save');
 
@@ -2322,72 +2356,7 @@ class CFC_Footer_Menu_Walker extends Walker_Nav_Menu {
 require_once CFC_THEME_DIR . '/inc/acf-fields.php';
 require_once CFC_THEME_DIR . '/inc/github-updater.php';
 
-/**
- * Create Sample Events (runs once)
- */
-function cfc_create_sample_events() {
-    // Check if already created
-    if (get_option('cfc_sample_events_created')) {
-        return;
-    }
-
-    // Create taxonomy terms first
-    $conferencia_term = term_exists('Conferencia', 'tipo_evento');
-    if (!$conferencia_term) {
-        $conferencia_term = wp_insert_term('Conferencia', 'tipo_evento');
-    }
-
-    $celebracion_term = term_exists('Celebración', 'tipo_evento');
-    if (!$celebracion_term) {
-        $celebracion_term = wp_insert_term('Celebración', 'tipo_evento');
-    }
-
-    // Event 1: Conferencia Anual de Fe
-    $evento1_id = wp_insert_post(array(
-        'post_title'    => 'Conferencia Anual de Fe',
-        'post_content'  => 'Tres días de adoración poderosa, enseñanza inspiradora y comunión profunda. Únete a nosotros para este tiempo especial donde juntos buscaremos el rostro de Dios y seremos renovados en nuestra fe.',
-        'post_excerpt'  => 'Tres días de adoración poderosa, enseñanza inspiradora y comunión profunda.',
-        'post_status'   => 'publish',
-        'post_type'     => 'cfc_evento',
-    ));
-
-    if ($evento1_id && !is_wp_error($evento1_id)) {
-        // Set taxonomy
-        if (!is_wp_error($conferencia_term)) {
-            $term_id = is_array($conferencia_term) ? $conferencia_term['term_id'] : $conferencia_term;
-            wp_set_object_terms($evento1_id, (int)$term_id, 'tipo_evento');
-        }
-        // Set meta fields (works with or without ACF)
-        update_post_meta($evento1_id, 'fecha_evento', '2025-12-15');
-        update_post_meta($evento1_id, 'hora_evento', '7:00 PM');
-        update_post_meta($evento1_id, 'ubicacion_evento', 'Centro Familiar Cristiano');
-    }
-
-    // Event 2: Celebración de Navidad
-    $evento2_id = wp_insert_post(array(
-        'post_title'    => 'Celebración de Navidad',
-        'post_content'  => 'Una noche especial para toda la familia con música y celebración. Ven a celebrar el nacimiento de nuestro Salvador con villancicos, presentaciones especiales y mucho amor.',
-        'post_excerpt'  => 'Una noche especial para toda la familia con música y celebración.',
-        'post_status'   => 'publish',
-        'post_type'     => 'cfc_evento',
-    ));
-
-    if ($evento2_id && !is_wp_error($evento2_id)) {
-        // Set taxonomy
-        if (!is_wp_error($celebracion_term)) {
-            $term_id = is_array($celebracion_term) ? $celebracion_term['term_id'] : $celebracion_term;
-            wp_set_object_terms($evento2_id, (int)$term_id, 'tipo_evento');
-        }
-        // Set meta fields
-        update_post_meta($evento2_id, 'fecha_evento', '2025-12-22');
-        update_post_meta($evento2_id, 'hora_evento', '6:00 PM');
-        update_post_meta($evento2_id, 'ubicacion_evento', 'Centro Familiar Cristiano');
-    }
-
-    // Mark as created
-    update_option('cfc_sample_events_created', true);
-}
-add_action('init', 'cfc_create_sample_events', 20);
+// Sample events function removed - events should be created manually by admin
 
 /**
  * Create Sample Ministerios (runs once)

@@ -20,6 +20,11 @@ if (empty($inicio_page)) {
     exit;
 }
 
+// Get page-specific overrides
+$inicio_page_id = $inicio_page[0]->ID;
+$custom_direccion = get_post_meta($inicio_page_id, 'ubicacion_direccion', true);
+$church_address = !empty($custom_direccion) ? $custom_direccion : cfc_get_option('church_address', cfc_default('church_address'));
+
 get_header();
 
 // Get hero video URL (from options or use local video)
@@ -187,7 +192,7 @@ $default_video = get_template_directory_uri() . '/assets/videos/cfcintrohomepage
                                     </div>
                                     <div class="flex-1">
                                         <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Dirección</p>
-                                        <p class="text-sm font-medium text-gray-900"><?php echo esc_html(cfc_get_option('church_address', cfc_default('church_address'))); ?></p>
+                                        <p class="text-sm font-medium text-gray-900"><?php echo esc_html($church_address); ?></p>
                                     </div>
                                 </div>
                             </div>

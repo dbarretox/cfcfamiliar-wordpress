@@ -72,6 +72,46 @@ $hero_subtitulo = get_post_meta($eventos_page_id, 'eventos_hero_subtitulo', true
         </div>
     </section>
 
+    <?php
+    // Query para los 2 eventos vigentes (no expirados o marcados como siempre visibles)
+    $today = date('Y-m-d');
+    $eventos_destacados = new WP_Query(array(
+        'post_type' => 'cfc_evento',
+        'posts_per_page' => 2,
+        'orderby' => 'meta_value',
+        'meta_key' => 'fecha_evento',
+        'order' => 'ASC',
+        'meta_query' => array(
+            'relation' => 'OR',
+            // Eventos con fecha futura
+            array(
+                'key' => 'fecha_evento',
+                'value' => $today,
+                'compare' => '>=',
+                'type' => 'DATE'
+            ),
+            // Eventos con fecha fin futura
+            array(
+                'key' => 'fecha_fin_evento',
+                'value' => $today,
+                'compare' => '>=',
+                'type' => 'DATE'
+            ),
+            // Eventos marcados como siempre visibles
+            array(
+                'key' => 'mantener_visible',
+                'value' => '1',
+                'compare' => '='
+            ),
+        ),
+    ));
+
+    // Contar solo eventos vigentes
+    $total_eventos = $eventos_destacados->found_posts;
+
+    // Solo mostrar sección de destacados si hay eventos
+    if ($eventos_destacados->have_posts()) :
+    ?>
     <!-- Eventos Destacados -->
     <section id="eventos-destacados" class="py-16 bg-gray-50">
         <div class="container mx-auto px-6">
@@ -82,23 +122,10 @@ $hero_subtitulo = get_post_meta($eventos_page_id, 'eventos_hero_subtitulo', true
                 </p>
             </div>
 
-            <?php
-            // Query para los 2 eventos más recientes
-            $eventos_destacados = new WP_Query(array(
-                'post_type' => 'cfc_evento',
-                'posts_per_page' => 2,
-                'orderby' => 'date',
-                'order' => 'DESC',
-            ));
-
-            $total_eventos = wp_count_posts('cfc_evento')->publish;
-            ?>
-
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
                 <?php
-                if ($eventos_destacados->have_posts()) :
-                    $delay = 0;
-                    while ($eventos_destacados->have_posts()) : $eventos_destacados->the_post();
+                $delay = 0;
+                while ($eventos_destacados->have_posts()) : $eventos_destacados->the_post();
                         $fecha = cfc_get_field('fecha_evento', get_the_ID(), '');
                         $hora = cfc_get_field('hora_evento', get_the_ID(), '');
                         $ubicacion = cfc_get_field('ubicacion_evento', get_the_ID(), '');
@@ -171,91 +198,10 @@ $hero_subtitulo = get_post_meta($eventos_page_id, 'eventos_hero_subtitulo', true
                     </div>
                 </div>
                 <?php
-                        $delay += 100;
-                    endwhile;
-                    wp_reset_postdata();
-                else :
+                    $delay += 100;
+                endwhile;
+                wp_reset_postdata();
                 ?>
-                <!-- Default eventos si no hay -->
-                <div class="bg-white rounded-2xl overflow-hidden shadow-lg" data-aos="fade-up">
-                    <div class="relative h-64">
-                        <img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=800&h=400&fit=crop"
-                             alt="Conferencia"
-                             class="w-full h-full object-cover">
-                        <div class="absolute top-4 left-4 bg-white rounded-lg p-3 text-center shadow-lg">
-                            <div class="text-2xl font-bold text-primary">15</div>
-                            <div class="text-xs text-gray-600 uppercase">DIC</div>
-                        </div>
-                    </div>
-                    <div class="p-8">
-                        <div class="inline-block px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-xs font-bold mb-4">
-                            CONFERENCIA
-                        </div>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-3">
-                            Conferencia Anual de Fe
-                        </h3>
-                        <p class="text-gray-600 mb-6">
-                            Tres días de adoración poderosa, enseñanza inspiradora y comunión profunda.
-                        </p>
-                        <div class="space-y-2 text-sm text-gray-600 mb-6">
-                            <div class="flex items-center gap-3">
-                                <span>&#128197;</span>
-                                <span>15-17 de Diciembre, 2025</span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <span>&#128336;</span>
-                                <span>7:00 PM</span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <span>&#128205;</span>
-                                <span>Centro Familiar Cristiano</span>
-                            </div>
-                        </div>
-                        <a href="#" class="w-full inline-flex items-center justify-center bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all">
-                            Registrarse Ahora
-                        </a>
-                    </div>
-                </div>
-                <div class="bg-white rounded-2xl overflow-hidden shadow-lg" data-aos="fade-up" data-aos-delay="100">
-                    <div class="relative h-64">
-                        <img src="https://images.unsplash.com/photo-1543269664-56d93c1b41a6?w=800&h=400&fit=crop"
-                             alt="Navidad"
-                             class="w-full h-full object-cover">
-                        <div class="absolute top-4 left-4 bg-white rounded-lg p-3 text-center shadow-lg">
-                            <div class="text-2xl font-bold text-primary">22</div>
-                            <div class="text-xs text-gray-600 uppercase">DIC</div>
-                        </div>
-                    </div>
-                    <div class="p-8">
-                        <div class="inline-block px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs font-bold mb-4">
-                            CELEBRACIÓN
-                        </div>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-3">
-                            Celebración de Navidad
-                        </h3>
-                        <p class="text-gray-600 mb-6">
-                            Una noche especial para toda la familia con música y celebración.
-                        </p>
-                        <div class="space-y-2 text-sm text-gray-600 mb-6">
-                            <div class="flex items-center gap-3">
-                                <span>&#128197;</span>
-                                <span>22 de Diciembre, 2025</span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <span>&#128336;</span>
-                                <span>6:00 PM</span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <span>&#128205;</span>
-                                <span>Centro Familiar Cristiano</span>
-                            </div>
-                        </div>
-                        <a href="#" class="w-full inline-flex items-center justify-center bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all">
-                            Confirmar Asistencia
-                        </a>
-                    </div>
-                </div>
-                <?php endif; ?>
             </div>
 
             <!-- Botón Ver más eventos -->
@@ -271,6 +217,7 @@ $hero_subtitulo = get_post_meta($eventos_page_id, 'eventos_hero_subtitulo', true
             <?php endif; ?>
         </div>
     </section>
+    <?php endif; // endif eventos_destacados ?>
 
     <!-- Todos los Eventos -->
     <section id="todos-eventos" class="py-16 bg-white">
