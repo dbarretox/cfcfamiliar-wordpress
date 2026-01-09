@@ -25,12 +25,36 @@ $inicio_page_id = $inicio_page[0]->ID;
 $custom_direccion = get_post_meta($inicio_page_id, 'ubicacion_direccion', true);
 $church_address = !empty($custom_direccion) ? $custom_direccion : cfc_get_option('church_address', cfc_default('church_address'));
 
-get_header();
-
-// Get hero video URL (from options or use local video)
-$hero_video = cfc_get_option('hero_video_url', '');
-$hero_image = cfc_get_option('hero_image', '');
+// Hero fields from page meta
+$hero_video = get_post_meta($inicio_page_id, 'hero_video_url', true);
+$hero_image = get_post_meta($inicio_page_id, 'hero_image_url', true);
+$hero_badge = get_post_meta($inicio_page_id, 'hero_badge', true) ?: 'En vivo cada domingo';
+$hero_mostrar_badge = get_post_meta($inicio_page_id, 'hero_mostrar_badge', true);
+if ($hero_mostrar_badge === '') $hero_mostrar_badge = '1';
+$hero_titulo_1 = get_post_meta($inicio_page_id, 'hero_titulo_1', true) ?: 'Centro Familiar';
+$hero_titulo_2 = get_post_meta($inicio_page_id, 'hero_titulo_2', true) ?: 'Cristiano';
+$hero_btn1_texto = get_post_meta($inicio_page_id, 'hero_btn1_texto', true) ?: 'Visítanos Este Domingo';
+$hero_btn1_url = get_post_meta($inicio_page_id, 'hero_btn1_url', true) ?: '#horarios';
+$hero_btn2_texto = get_post_meta($inicio_page_id, 'hero_btn2_texto', true) ?: 'Ver en Vivo';
+$hero_btn2_url = get_post_meta($inicio_page_id, 'hero_btn2_url', true);
+if (empty($hero_btn2_url)) {
+    $hero_btn2_url = cfc_get_option('youtube_live_url', cfc_default('youtube_live_url'));
+}
 $default_video = get_template_directory_uri() . '/assets/videos/cfcintrohomepage.mp4';
+
+// Ubicación fields from page meta
+$ubi_badge = get_post_meta($inicio_page_id, 'ubi_badge', true) ?: 'Encuéntranos';
+$ubi_mostrar_badge = get_post_meta($inicio_page_id, 'ubi_mostrar_badge', true);
+if ($ubi_mostrar_badge === '') $ubi_mostrar_badge = '1';
+$ubi_titulo_1 = get_post_meta($inicio_page_id, 'ubi_titulo_1', true) ?: 'Localizaciones y';
+$ubi_titulo_2 = get_post_meta($inicio_page_id, 'ubi_titulo_2', true) ?: 'Horarios';
+$ubi_maps_url = get_post_meta($inicio_page_id, 'ubi_maps_url', true);
+if (empty($ubi_maps_url)) {
+    $ubi_maps_url = cfc_get_option('google_maps_url', cfc_default('google_maps_url'));
+}
+$ubi_maps_texto = get_post_meta($inicio_page_id, 'ubi_maps_texto', true) ?: 'Abrir en Google Maps';
+
+get_header();
 ?>
 
     <!-- Hero Section -->
@@ -63,6 +87,7 @@ $default_video = get_template_directory_uri() . '/assets/videos/cfcintrohomepage
 
         <!-- Content -->
         <div class="relative z-10 text-center px-6 max-w-6xl mx-auto hero-content">
+            <?php if ($hero_mostrar_badge === '1') : ?>
             <!-- Badge superior -->
             <div class="hero-badge mb-6">
                 <span class="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white text-sm font-semibold">
@@ -70,33 +95,34 @@ $default_video = get_template_directory_uri() . '/assets/videos/cfcintrohomepage
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-3 w-3 bg-sky-300"></span>
                     </span>
-                    En vivo cada domingo
+                    <?php echo esc_html($hero_badge); ?>
                 </span>
             </div>
+            <?php endif; ?>
 
             <!-- Título principal -->
             <h1 class="hero-title text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white mb-8 leading-tight">
-                <span class="block mb-2">Centro Familiar</span>
+                <span class="block mb-2"><?php echo esc_html($hero_titulo_1); ?></span>
                 <span class="block bg-gradient-to-r from-blue-400 via-cyan-300 to-sky-200 bg-clip-text text-transparent">
-                    Cristiano
+                    <?php echo esc_html($hero_titulo_2); ?>
                 </span>
             </h1>
 
             <!-- Botones de acción -->
             <div class="hero-buttons flex flex-col sm:flex-row gap-5 justify-center items-center">
-                <a href="#horarios" class="group relative inline-flex items-center gap-3 px-8 py-4 bg-white text-primary rounded-full font-bold text-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105">
-                    <span class="relative z-10">Visítanos Este Domingo</span>
-                    <svg class="w-5 h-5 relative z-10 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="<?php echo esc_url($hero_btn1_url); ?>" class="group relative inline-flex items-center gap-3 px-8 py-4 bg-white text-primary rounded-full font-bold text-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:text-white">
+                    <span class="relative z-10 transition-colors duration-300 group-hover:text-white"><?php echo esc_html($hero_btn1_texto); ?></span>
+                    <svg class="w-5 h-5 relative z-10 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
                     </svg>
-                    <div class="absolute inset-0 bg-gradient-to-r from-primary to-secondary transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
+                    <div class="absolute inset-0 bg-gradient-to-r from-primary to-secondary transform -skew-x-12 scale-x-0 group-hover:scale-x-110 transition-transform origin-left duration-300"></div>
                 </a>
 
-                <a href="<?php echo esc_url(cfc_get_option('youtube_live_url', cfc_default('youtube_live_url'))); ?>" target="_blank" class="group inline-flex items-center gap-3 px-8 py-4 bg-white/10 backdrop-blur-md border-2 border-white/30 text-white rounded-full font-bold text-lg hover:bg-white/20 transition-all duration-300">
+                <a href="<?php echo esc_url($hero_btn2_url); ?>" target="_blank" class="group inline-flex items-center gap-3 px-8 py-4 bg-white/10 backdrop-blur-md border-2 border-white/30 text-white rounded-full font-bold text-lg hover:bg-white/20 transition-all duration-300">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"></path>
                     </svg>
-                    Ver en Vivo
+                    <?php echo esc_html($hero_btn2_texto); ?>
                 </a>
             </div>
         </div>
@@ -118,14 +144,16 @@ $default_video = get_template_directory_uri() . '/assets/videos/cfcintrohomepage
             <div class="max-w-5xl mx-auto">
                 <!-- Header -->
                 <div class="text-center mb-12" data-aos="fade-up">
+                    <?php if ($ubi_mostrar_badge === '1') : ?>
                     <div class="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 rounded-full mb-3">
                         <svg class="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
                         </svg>
-                        <span class="text-primary text-sm font-bold uppercase tracking-wider">Encuéntranos</span>
+                        <span class="text-primary text-sm font-bold uppercase tracking-wider"><?php echo esc_html($ubi_badge); ?></span>
                     </div>
+                    <?php endif; ?>
                     <h2 class="text-3xl md:text-4xl font-black text-gray-900">
-                        Localizaciones y <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Horarios</span>
+                        <?php echo esc_html($ubi_titulo_1); ?> <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"><?php echo esc_html($ubi_titulo_2); ?></span>
                     </h2>
                 </div>
 
@@ -201,11 +229,11 @@ $default_video = get_template_directory_uri() . '/assets/videos/cfcintrohomepage
 
                     <!-- Botón Google Maps -->
                     <div class="border-t border-gray-100">
-                        <a href="<?php echo esc_url(cfc_get_option('google_maps_url', cfc_default('google_maps_url'))); ?>" target="_blank" class="group flex items-center justify-center gap-3 w-full py-5 bg-gradient-to-r from-primary via-secondary to-primary bg-size-200 bg-pos-0 hover:bg-pos-100 text-white font-bold transition-all duration-500">
+                        <a href="<?php echo esc_url($ubi_maps_url); ?>" target="_blank" class="group flex items-center justify-center gap-3 w-full py-5 bg-gradient-to-r from-primary via-secondary to-primary bg-size-200 bg-pos-0 hover:bg-pos-100 text-white font-bold transition-all duration-500">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
                             </svg>
-                            <span>Abrir en Google Maps</span>
+                            <span><?php echo esc_html($ubi_maps_texto); ?></span>
                             <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
                             </svg>

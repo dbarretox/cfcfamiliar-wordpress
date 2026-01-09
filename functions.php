@@ -739,73 +739,292 @@ add_filter('use_block_editor_for_post_type', 'cfc_disable_gutenberg', 10, 2);
  */
 function cfc_admin_styles() {
     echo '<style>
+        /* ========================================
+           CFC Metabox Styles - Clean Modern UI
+           ======================================== */
+
+        /* Column widths for CPT lists */
         .post-type-cfc_evento .wp-list-table .column-title,
         .post-type-cfc_ministerio .wp-list-table .column-title,
         .post-type-cfc_reflexion .wp-list-table .column-title {
             width: 40%;
         }
 
-        /* Metabox Grid Layout */
+        /* Metabox container - clean, no rounded corners */
+        .postbox[id^="cfc_"] {
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            margin-bottom: 24px !important;
+            overflow: visible;
+        }
+
+        /* Remove default WordPress hover on metabox */
+        .postbox[id^="cfc_"]:hover {
+            box-shadow: none !important;
+        }
+
+        /* Metabox header - gradient bar */
+        .postbox[id^="cfc_"] .postbox-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border: none !important;
+            border-radius: 0 !important;
+        }
+
+        .postbox[id^="cfc_"] .postbox-header h2 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .postbox[id^="cfc_"] .postbox-header .handle-actions button {
+            color: #fff !important;
+        }
+
+        .postbox[id^="cfc_"] .postbox-header .handle-actions button:hover,
+        .postbox[id^="cfc_"] .postbox-header .handle-actions button:focus {
+            color: #fff !important;
+            background: transparent !important;
+        }
+
+        /* Content area - subtle lavender/blue gradient */
+        [id^="cfc_"] .inside {
+            padding: 0 !important;
+            margin: 0 !important;
+            background: linear-gradient(180deg, #f8f9ff 0%, #f5f3ff 50%, #faf5ff 100%) !important;
+            border-left: 3px solid #667eea;
+            border-right: 1px solid #e9e5f5;
+            border-bottom: 1px solid #e9e5f5;
+        }
+
+        /* Grid Layout with more padding */
         .cfc-metabox-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
+            gap: 20px;
+            padding: 28px 24px;
+            background: transparent;
         }
+
         .cfc-metabox-grid .cfc-metabox-field.full-width {
             grid-column: 1 / -1;
         }
-        .cfc-metabox-grid .cfc-metabox-field label {
+
+        /* Field styling */
+        .cfc-metabox-field {
+            position: relative;
+        }
+
+        .cfc-metabox-field > label {
             display: block;
             font-weight: 600;
-            margin-bottom: 6px;
-            color: #1d2327;
+            margin-bottom: 8px;
+            color: #374151;
+            font-size: 13px;
         }
-        .cfc-metabox-grid .cfc-metabox-field input,
-        .cfc-metabox-grid .cfc-metabox-field select,
-        .cfc-metabox-grid .cfc-metabox-field textarea {
+
+        .cfc-metabox-field > label small {
+            font-weight: 400;
+            color: #9ca3af;
+        }
+
+        /* Input styling - clean with subtle radius */
+        .cfc-metabox-field input[type="text"],
+        .cfc-metabox-field input[type="url"],
+        .cfc-metabox-field input[type="email"],
+        .cfc-metabox-field input[type="number"],
+        .cfc-metabox-field input[type="date"],
+        .cfc-metabox-field input[type="time"],
+        .cfc-metabox-field select,
+        .cfc-metabox-field textarea {
             width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #8c8f94;
+            padding: 12px 14px;
+            border: 1px solid #d4d0e8;
             border-radius: 4px;
             font-size: 14px;
             box-sizing: border-box;
+            background: #fff;
+            color: #1f2937;
         }
-        .cfc-metabox-grid .cfc-metabox-field input:focus,
-        .cfc-metabox-grid .cfc-metabox-field select:focus,
-        .cfc-metabox-grid .cfc-metabox-field textarea:focus {
-            border-color: #2271b1;
-            box-shadow: 0 0 0 1px #2271b1;
+
+        .cfc-metabox-field input:focus,
+        .cfc-metabox-field select:focus,
+        .cfc-metabox-field textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.15);
             outline: none;
         }
-        .cfc-metabox-grid .description {
-            margin-top: 4px;
-            color: #646970;
+
+        .cfc-metabox-field textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .cfc-metabox-field select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 20 20\'%3E%3Cpath fill=\'%236b7280\' d=\'M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z\'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        /* Description text */
+        .cfc-metabox-field .description {
+            margin-top: 8px;
+            color: #6b7280;
             font-size: 12px;
+            line-height: 1.5;
         }
+
+        /* Section titles - clean bar style */
         .cfc-section-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #1d2327;
+            font-size: 11px;
+            font-weight: 700;
+            color: #5b4f8a;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin: 16px 0 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #c3c4c7;
+            letter-spacing: 1px;
+            margin: 0;
+            padding: 14px 16px;
+            background: linear-gradient(90deg, #ebe7f6 0%, #f0ecfa 100%);
+            border-left: 4px solid #764ba2;
             grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
         }
-        .cfc-section-title:first-child {
-            margin-top: 0;
+
+        /* Toggle Switch - clean version */
+        .cfc-toggle-field {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 18px;
+            background: #fff;
+            border: 1px solid #d4d0e8;
+            border-radius: 4px;
+            margin-top: 20px;
         }
+
+        .cfc-toggle-content {
+            flex: 1;
+        }
+
+        .cfc-toggle-label {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .cfc-toggle-desc {
+            font-size: 12px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* The toggle switch */
+        .cfc-toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .cfc-toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .cfc-toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #c4bfdb;
+            transition: 0.3s;
+            border-radius: 28px;
+        }
+
+        .cfc-toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+
+        .cfc-toggle-switch input:checked + .cfc-toggle-slider {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .cfc-toggle-switch input:checked + .cfc-toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .cfc-toggle-switch input:focus + .cfc-toggle-slider {
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        /* Legacy checkbox field styling */
+        .cfc-checkbox-field {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 18px;
+            background: #fff;
+            border: 1px solid #d4d0e8;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .cfc-checkbox-field:hover {
+            border-color: #cbd5e1;
+        }
+
+        .cfc-checkbox-field input[type="checkbox"] {
+            display: none;
+        }
+
+        .cfc-checkbox-field .cfc-checkbox-content {
+            flex: 1;
+        }
+
+        .cfc-checkbox-field .cfc-checkbox-label {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .cfc-checkbox-field .cfc-checkbox-desc {
+            font-size: 12px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* Responsive */
         @media (max-width: 782px) {
             .cfc-metabox-grid {
                 grid-template-columns: 1fr;
+                padding: 16px;
+                gap: 16px;
             }
         }
 
-        /* Legacy single-column fields */
-        .cfc-metabox-field { margin-bottom: 15px; }
-        .cfc-metabox-field label { display: block; font-weight: 600; margin-bottom: 5px; }
-        .cfc-metabox-field input { width: 100%; padding: 8px; }
+        /* Legacy support */
+        .cfc-metabox-field { margin-bottom: 0; }
     </style>';
 }
 add_action('admin_head', 'cfc_admin_styles');
@@ -1049,28 +1268,73 @@ function cfc_quienes_mision_html($post) {
  */
 function cfc_inicio_hero_html($post) {
     wp_nonce_field('cfc_page_fields_save', 'cfc_page_fields_nonce');
+    $mostrar_badge = get_post_meta($post->ID, 'hero_mostrar_badge', true);
+    if ($mostrar_badge === '') $mostrar_badge = '1'; // Default: mostrar
     ?>
     <div class="cfc-metabox-grid">
-        <div class="cfc-metabox-field full-width">
+        <!-- Fondo -->
+        <div class="cfc-section-title">Fondo</div>
+        <div class="cfc-metabox-field">
             <label for="hero_video_url">URL del Video (MP4)</label>
             <input type="url" id="hero_video_url" name="hero_video_url" value="<?php echo esc_attr(get_post_meta($post->ID, 'hero_video_url', true)); ?>" placeholder="https://ejemplo.com/video.mp4">
-            <p class="description">Video de fondo del hero. Si está vacío, usará la imagen.</p>
+            <p class="description">Si está vacío, usará la imagen o el video local.</p>
         </div>
-        <div class="cfc-metabox-field full-width">
+        <div class="cfc-metabox-field">
             <label for="hero_image_url">URL de Imagen de Fondo</label>
             <input type="url" id="hero_image_url" name="hero_image_url" value="<?php echo esc_attr(get_post_meta($post->ID, 'hero_image_url', true)); ?>" placeholder="https://images.unsplash.com/...">
         </div>
+
+        <!-- Badge -->
+        <div class="cfc-section-title">Badge Superior</div>
         <div class="cfc-metabox-field">
             <label for="hero_badge">Texto del Badge</label>
             <input type="text" id="hero_badge" name="hero_badge" value="<?php echo esc_attr(get_post_meta($post->ID, 'hero_badge', true) ?: 'En vivo cada domingo'); ?>">
         </div>
         <div class="cfc-metabox-field">
+            <div class="cfc-toggle-field">
+                <div class="cfc-toggle-content">
+                    <div class="cfc-toggle-label">Mostrar Badge</div>
+                    <p class="cfc-toggle-desc">Activa para mostrar el badge animado en el hero</p>
+                </div>
+                <label class="cfc-toggle-switch">
+                    <input type="checkbox" id="hero_mostrar_badge" name="hero_mostrar_badge" value="1" <?php checked($mostrar_badge, '1'); ?>>
+                    <span class="cfc-toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Títulos -->
+        <div class="cfc-section-title">Títulos</div>
+        <div class="cfc-metabox-field">
             <label for="hero_titulo_1">Título Línea 1</label>
             <input type="text" id="hero_titulo_1" name="hero_titulo_1" value="<?php echo esc_attr(get_post_meta($post->ID, 'hero_titulo_1', true) ?: 'Centro Familiar'); ?>">
         </div>
-        <div class="cfc-metabox-field full-width">
+        <div class="cfc-metabox-field">
             <label for="hero_titulo_2">Título Línea 2 (destacado)</label>
             <input type="text" id="hero_titulo_2" name="hero_titulo_2" value="<?php echo esc_attr(get_post_meta($post->ID, 'hero_titulo_2', true) ?: 'Cristiano'); ?>">
+        </div>
+
+        <!-- Botón Principal -->
+        <div class="cfc-section-title">Botón Principal</div>
+        <div class="cfc-metabox-field">
+            <label for="hero_btn1_texto">Texto del Botón</label>
+            <input type="text" id="hero_btn1_texto" name="hero_btn1_texto" value="<?php echo esc_attr(get_post_meta($post->ID, 'hero_btn1_texto', true) ?: 'Visítanos Este Domingo'); ?>">
+        </div>
+        <div class="cfc-metabox-field">
+            <label for="hero_btn1_url">URL del Botón</label>
+            <input type="text" id="hero_btn1_url" name="hero_btn1_url" value="<?php echo esc_attr(get_post_meta($post->ID, 'hero_btn1_url', true) ?: '#horarios'); ?>" placeholder="#horarios o https://...">
+        </div>
+
+        <!-- Botón Secundario -->
+        <div class="cfc-section-title">Botón Secundario (Ver en Vivo)</div>
+        <div class="cfc-metabox-field">
+            <label for="hero_btn2_texto">Texto del Botón</label>
+            <input type="text" id="hero_btn2_texto" name="hero_btn2_texto" value="<?php echo esc_attr(get_post_meta($post->ID, 'hero_btn2_texto', true) ?: 'Ver en Vivo'); ?>">
+        </div>
+        <div class="cfc-metabox-field">
+            <label for="hero_btn2_url">URL del Botón</label>
+            <input type="url" id="hero_btn2_url" name="hero_btn2_url" value="<?php echo esc_attr(get_post_meta($post->ID, 'hero_btn2_url', true)); ?>" placeholder="Dejar vacío para usar YouTube de Configuraciones">
+            <p class="description">Si está vacío, usa la URL de YouTube Live de Configuraciones.</p>
         </div>
     </div>
     <?php
@@ -1141,15 +1405,59 @@ function cfc_inicio_jovenes_html($post) {
  */
 function cfc_inicio_ubicacion_html($post) {
     wp_nonce_field('cfc_page_fields_save', 'cfc_page_fields_nonce');
-    $direccion = get_post_meta($post->ID, 'ubicacion_direccion', true);
-    $default_direccion = cfc_get_option('church_address', cfc_default('church_address'));
+
+    // Get saved values
+    $mostrar_badge = get_post_meta($post->ID, 'ubi_mostrar_badge', true);
+    if ($mostrar_badge === '') $mostrar_badge = '1';
     ?>
-    <p class="description" style="margin-bottom: 15px;">Estos campos permiten sobrescribir los valores globales de Configuraciones solo para esta página.</p>
     <div class="cfc-metabox-grid">
+        <!-- Badge -->
+        <div class="cfc-section-title">Badge Superior</div>
+        <div class="cfc-metabox-field">
+            <label for="ubi_badge">Texto del Badge</label>
+            <input type="text" id="ubi_badge" name="ubi_badge" value="<?php echo esc_attr(get_post_meta($post->ID, 'ubi_badge', true) ?: 'Encuéntranos'); ?>">
+        </div>
+        <div class="cfc-metabox-field">
+            <div class="cfc-toggle-field">
+                <div class="cfc-toggle-content">
+                    <div class="cfc-toggle-label">Mostrar Badge</div>
+                    <p class="cfc-toggle-desc">Activa para mostrar el badge de la sección</p>
+                </div>
+                <label class="cfc-toggle-switch">
+                    <input type="checkbox" id="ubi_mostrar_badge" name="ubi_mostrar_badge" value="1" <?php checked($mostrar_badge, '1'); ?>>
+                    <span class="cfc-toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Títulos -->
+        <div class="cfc-section-title">Títulos</div>
+        <div class="cfc-metabox-field">
+            <label for="ubi_titulo_1">Título Línea 1</label>
+            <input type="text" id="ubi_titulo_1" name="ubi_titulo_1" value="<?php echo esc_attr(get_post_meta($post->ID, 'ubi_titulo_1', true) ?: 'Localizaciones y'); ?>">
+        </div>
+        <div class="cfc-metabox-field">
+            <label for="ubi_titulo_2">Título Línea 2 (destacado)</label>
+            <input type="text" id="ubi_titulo_2" name="ubi_titulo_2" value="<?php echo esc_attr(get_post_meta($post->ID, 'ubi_titulo_2', true) ?: 'Horarios'); ?>">
+        </div>
+
+        <!-- Dirección -->
+        <div class="cfc-section-title">Dirección</div>
         <div class="cfc-metabox-field full-width">
-            <label for="ubicacion_direccion">Dirección</label>
-            <input type="text" id="ubicacion_direccion" name="ubicacion_direccion" value="<?php echo esc_attr($direccion); ?>" placeholder="<?php echo esc_attr($default_direccion); ?>">
-            <p class="description">Dejar vacío para usar: <?php echo esc_html($default_direccion); ?></p>
+            <label for="ubicacion_direccion">Texto de Dirección</label>
+            <input type="text" id="ubicacion_direccion" name="ubicacion_direccion" value="<?php echo esc_attr(get_post_meta($post->ID, 'ubicacion_direccion', true) ?: 'Calle Julio Fábrega, Edificio #5857'); ?>">
+        </div>
+
+        <!-- Botón Google Maps -->
+        <div class="cfc-section-title">Botón Google Maps</div>
+        <div class="cfc-metabox-field">
+            <label for="ubi_maps_url">URL de Google Maps</label>
+            <input type="url" id="ubi_maps_url" name="ubi_maps_url" value="<?php echo esc_attr(get_post_meta($post->ID, 'ubi_maps_url', true)); ?>" placeholder="https://maps.google.com/...">
+            <p class="description">Dejar vacío para usar el de Configuraciones</p>
+        </div>
+        <div class="cfc-metabox-field">
+            <label for="ubi_maps_texto">Texto del Botón</label>
+            <input type="text" id="ubi_maps_texto" name="ubi_maps_texto" value="<?php echo esc_attr(get_post_meta($post->ID, 'ubi_maps_texto', true) ?: 'Abrir en Google Maps'); ?>">
         </div>
     </div>
     <?php
@@ -1272,10 +1580,11 @@ function cfc_page_fields_save($post_id) {
         'quienes_hero_titulo', 'quienes_hero_subtitulo', 'quienes_hero_imagen',
         'mision', 'vision',
         // Inicio - Hero + Adolescentes + Jovenes + Ubicacion
-        'hero_video_url', 'hero_image_url', 'hero_badge', 'hero_titulo_1', 'hero_titulo_2',
+        'hero_video_url', 'hero_image_url', 'hero_badge', 'hero_mostrar_badge', 'hero_titulo_1', 'hero_titulo_2',
+        'hero_btn1_texto', 'hero_btn1_url', 'hero_btn2_texto', 'hero_btn2_url',
         'adol_titulo', 'adol_desc', 'adol_edad', 'adol_horario', 'adol_imagen',
         'jov_titulo', 'jov_desc', 'jov_edad', 'jov_horario', 'jov_imagen',
-        'ubicacion_direccion',
+        'ubicacion_direccion', 'ubi_badge', 'ubi_titulo_1', 'ubi_titulo_2', 'ubi_maps_url', 'ubi_maps_texto',
         // Eventos - Hero + Calendar
         'eventos_hero_titulo', 'eventos_hero_subtitulo', 'eventos_hero_imagen',
         'eventos_calendar_embed', 'eventos_calendar_subscribe',
@@ -1289,6 +1598,13 @@ function cfc_page_fields_save($post_id) {
         if (isset($_POST[$field])) {
             update_post_meta($post_id, $field, sanitize_textarea_field($_POST[$field]));
         }
+    }
+
+    // Handle checkbox fields specially (they don't send value when unchecked)
+    $checkbox_fields = array('hero_mostrar_badge', 'ubi_mostrar_badge');
+    foreach ($checkbox_fields as $checkbox) {
+        $value = isset($_POST[$checkbox]) ? '1' : '0';
+        update_post_meta($post_id, $checkbox, $value);
     }
 }
 add_action('save_post', 'cfc_page_fields_save');
@@ -1418,12 +1734,17 @@ function cfc_evento_fecha_html($post) {
             <input type="url" id="maps_url" name="maps_url" value="<?php echo esc_attr($maps_url); ?>" placeholder="https://maps.google.com/...">
         </div>
 
-        <div class="cfc-metabox-field full-width" style="background: #f0f7ff; padding: 12px; border-radius: 8px; border: 1px solid #c5d9f1;">
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0;">
-                <input type="checkbox" id="mantener_visible" name="mantener_visible" value="1" <?php checked($mantener_visible, '1'); ?> style="width: 18px; height: 18px;">
-                <span style="font-weight: 600;">Mantener visible siempre</span>
-            </label>
-            <p class="description" style="margin: 8px 0 0 28px;">Si no está marcado, el evento se ocultará automáticamente después de la fecha</p>
+        <div class="cfc-metabox-field full-width">
+            <div class="cfc-toggle-field">
+                <div class="cfc-toggle-content">
+                    <div class="cfc-toggle-label">Mantener visible siempre</div>
+                    <p class="cfc-toggle-desc">Si está desactivado, el evento se ocultará automáticamente después de la fecha</p>
+                </div>
+                <label class="cfc-toggle-switch">
+                    <input type="checkbox" id="mantener_visible" name="mantener_visible" value="1" <?php checked($mantener_visible, '1'); ?>>
+                    <span class="cfc-toggle-slider"></span>
+                </label>
+            </div>
         </div>
     </div>
     <?php
