@@ -3,8 +3,8 @@
   "version": "1.0.4",
   "private": true,
   "scripts": {
-    "dev": "tailwindcss -i src/input.css -o assets/css/tailwind.css --watch",
-    "build": "tailwindcss -i src/input.css -o assets/css/tailwind.css --minify"
+    "dev": "npx tailwindcss -i src/input.css -o assets/css/tailwind.css --watch",
+    "build": "npx tailwindcss -i src/input.css -o assets/css/tailwind.css --minify"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.19"
