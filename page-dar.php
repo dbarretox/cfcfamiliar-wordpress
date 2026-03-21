@@ -189,6 +189,20 @@ $whatsapp = cfc_get_option('church_whatsapp', cfc_default('church_whatsapp'));
         </div>
     </section>
 
+    <?php
+    // Zona de contenido libre (editor de WordPress)
+    $content = get_the_content();
+    if (!empty(trim($content))) :
+    ?>
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto cfc-content">
+                <?php the_content(); ?>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
+
     <!-- CTA Section -->
     <section class="py-20 bg-gradient-to-br from-primary via-secondary to-accent relative overflow-hidden">
         <div class="absolute inset-0 opacity-10">

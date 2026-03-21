@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@source "../**/*.php";
+@source "../assets/js/**/*.js";
+
+@theme {
+    /* Paleta principal */
+    --color-primary: #1e40af;
+    --color-primary-dark: #1e3a8a;
+    --color-secondary: #3b82f6;
+    --color-accent: #0ea5e9;
+    --color-accent-light: #38bdf8;
+
+    /* Complementarios */
+    --color-success: #10b981;
+    --color-rose: #ec4899;
+    --color-indigo: #4f46e5;
+
+    /* Fondos */
+    --color-bg-light: #f8fafc;
+
+    /* Fuentes */
+    --font-sans: 'Inter', system-ui, sans-serif;
+
+    /* Animaciones */
+    --animate-bounce-slow: bounce 3s infinite;
+    --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

@@ -496,6 +496,20 @@ $jov_imagen = get_post_meta(get_the_ID(), 'jov_imagen', true) ?: 'https://images
         </div>
     </section>
 
+    <?php
+    // Zona de contenido libre (editor de WordPress)
+    $content = get_the_content(null, false, get_the_ID());
+    if (!empty(trim($content))) :
+    ?>
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto cfc-content">
+                <?php echo apply_filters('the_content', $content); ?>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
+
     <!-- Sección ¿Primera vez aquí? -->
     <section id="nuevo" class="py-20 bg-gradient-to-r from-primary via-secondary to-accent text-white relative overflow-hidden">
         <!-- Pattern decorativo -->

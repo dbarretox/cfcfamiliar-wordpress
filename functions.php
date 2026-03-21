@@ -65,12 +65,12 @@ function cfc_enqueue_assets() {
         null
     );
 
-    // Tailwind CSS via CDN
-    wp_enqueue_script(
-        'tailwindcss',
-        'https://cdn.tailwindcss.com',
+    // Tailwind CSS (compilado)
+    wp_enqueue_style(
+        'cfc-tailwind',
+        CFC_THEME_URI . '/assets/css/tailwind.css',
         array(),
-        null
+        CFC_VERSION
     );
 
     // AOS Animation Library
@@ -88,20 +88,11 @@ function cfc_enqueue_assets() {
         true
     );
 
-    // Tailwind Config
-    wp_enqueue_script(
-        'cfc-tailwind-config',
-        CFC_THEME_URI . '/assets/js/tailwind-config.js',
-        array('tailwindcss'),
-        CFC_VERSION,
-        false
-    );
-
     // Main CSS
     wp_enqueue_style(
         'cfc-main-style',
         CFC_THEME_URI . '/assets/css/main.css',
-        array('aos-css'),
+        array('cfc-tailwind', 'aos-css'),
         CFC_VERSION
     );
 
@@ -685,6 +676,15 @@ function cfc_default($key) {
  */
 function cfc_get_changelog() {
     return array(
+        '1.0.4' => array(
+            'date' => '2026-03-21',
+            'changes' => array(
+                'Tailwind CSS compilado (reemplaza CDN, mejor rendimiento)',
+                'Compatibilidad con Gravity Forms (estilos protegidos)',
+                'Fix: Menú mobile se quedaba trabado',
+                'Nuevo: Archivo XML de demo content para importación',
+            )
+        ),
         '1.0.3' => array(
             'date' => '2026-01-07',
             'changes' => array(
@@ -1058,15 +1058,16 @@ function cfc_add_metaboxes() {
     add_meta_box('cfc_visitanos_horarios', 'Horarios de Servicios', 'cfc_visitanos_horarios_html', 'page', 'normal', 'high');
     add_meta_box('cfc_visitanos_galeria', 'Galería de Imágenes', 'cfc_visitanos_galeria_html', 'page', 'normal', 'high');
 
-    // Template QUIENES SOMOS - 2 metaboxes
+    // Template QUIENES SOMOS - 3 metaboxes
     add_meta_box('cfc_quienes_hero', 'Hero Section', 'cfc_quienes_hero_html', 'page', 'normal', 'high');
+    add_meta_box('cfc_quienes_pastores', 'Nuestro Liderazgo (Pastores)', 'cfc_quienes_pastores_html', 'page', 'normal', 'high');
     add_meta_box('cfc_quienes_mision', 'Misión y Visión', 'cfc_quienes_mision_html', 'page', 'normal', 'high');
 
     // Template INICIO - 4 metaboxes
     add_meta_box('cfc_inicio_hero', 'Hero Section', 'cfc_inicio_hero_html', 'page', 'normal', 'high');
     add_meta_box('cfc_inicio_ubicacion', 'Localizaciones y Horarios', 'cfc_inicio_ubicacion_html', 'page', 'normal', 'high');
-    add_meta_box('cfc_inicio_adolescentes', 'Sección Adolescentes', 'cfc_inicio_adolescentes_html', 'page', 'normal', 'high');
-    add_meta_box('cfc_inicio_jovenes', 'Sección Jóvenes', 'cfc_inicio_jovenes_html', 'page', 'normal', 'high');
+    add_meta_box('cfc_inicio_encuentralugar', 'Sección Encuentra Tu Lugar', 'cfc_inicio_encuentralugar_html', 'page', 'normal', 'high');
+    add_meta_box('cfc_inicio_reflexiones', 'Sección Reflexiones Recientes', 'cfc_inicio_reflexiones_html', 'page', 'normal', 'high');
 
     // Template EVENTOS - 2 metaboxes
     add_meta_box('cfc_eventos_hero', 'Hero Section', 'cfc_eventos_hero_html', 'page', 'normal', 'high');
@@ -1245,6 +1246,29 @@ function cfc_quienes_hero_html($post) {
 }
 
 /**
+ * Template QUIENES SOMOS: Nuestro Liderazgo (Pastores)
+ */
+function cfc_quienes_pastores_html($post) {
+    ?>
+    <div class="cfc-metabox-grid">
+        <div class="cfc-metabox-field full-width">
+            <label for="pastores_imagen">Foto de Familia Pastoral (URL)</label>
+            <input type="url" id="pastores_imagen" name="pastores_imagen" value="<?php echo esc_attr(get_post_meta($post->ID, 'pastores_imagen', true)); ?>" placeholder="https://ejemplo.com/foto-pastores.jpg">
+        </div>
+        <div class="cfc-metabox-field full-width">
+            <label for="pastores_texto">Texto / Mensaje</label>
+            <textarea id="pastores_texto" name="pastores_texto" rows="4" placeholder="Confiando en Dios quien nos da la sabiduría..."><?php echo esc_textarea(get_post_meta($post->ID, 'pastores_texto', true)); ?></textarea>
+        </div>
+        <div class="cfc-metabox-field full-width">
+            <label for="pastores_nombres">Nombres de los Pastores</label>
+            <input type="text" id="pastores_nombres" name="pastores_nombres" value="<?php echo esc_attr(get_post_meta($post->ID, 'pastores_nombres', true) ?: 'Pastores – Julio y Gladys Bolivar'); ?>" placeholder="Pastores – Julio y Gladys Bolivar">
+        </div>
+    </div>
+    <p class="description">Esta sección aparece antes de "Quién es Quién" con la foto a un lado y el texto al otro.</p>
+    <?php
+}
+
+/**
  * Template QUIENES SOMOS: Misión y Visión
  */
 function cfc_quienes_mision_html($post) {
@@ -1270,6 +1294,8 @@ function cfc_inicio_hero_html($post) {
     wp_nonce_field('cfc_page_fields_save', 'cfc_page_fields_nonce');
     $mostrar_badge = get_post_meta($post->ID, 'hero_mostrar_badge', true);
     if ($mostrar_badge === '') $mostrar_badge = '1'; // Default: mostrar
+    $estamos_en_vivo = get_post_meta($post->ID, 'estamos_en_vivo', true);
+    if ($estamos_en_vivo === '') $estamos_en_vivo = '0'; // Default: no estamos en vivo
     ?>
     <div class="cfc-metabox-grid">
         <!-- Fondo -->
@@ -1333,19 +1359,56 @@ function cfc_inicio_hero_html($post) {
         </div>
         <div class="cfc-metabox-field">
             <label for="hero_btn2_url">URL del Botón</label>
-            <input type="url" id="hero_btn2_url" name="hero_btn2_url" value="<?php echo esc_attr(get_post_meta($post->ID, 'hero_btn2_url', true)); ?>" placeholder="Dejar vacío para usar YouTube de Configuraciones">
-            <p class="description">Si está vacío, usa la URL de YouTube Live de Configuraciones.</p>
+            <input type="url" id="hero_btn2_url" name="hero_btn2_url" value="<?php echo esc_attr(get_post_meta($post->ID, 'hero_btn2_url', true)); ?>" placeholder="https://youtube.com/live/...">
+            <p class="description">URL del live actual (cambia cada domingo).</p>
+        </div>
+        <div class="cfc-metabox-field">
+            <div class="cfc-toggle-field">
+                <div class="cfc-toggle-content">
+                    <div class="cfc-toggle-label">¿Estamos en Vivo?</div>
+                    <p class="cfc-toggle-desc">Activa cuando el servicio esté transmitiendo en vivo</p>
+                </div>
+                <label class="cfc-toggle-switch">
+                    <input type="checkbox" id="estamos_en_vivo" name="estamos_en_vivo" value="1" <?php checked($estamos_en_vivo, '1'); ?>>
+                    <span class="cfc-toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        <div class="cfc-metabox-field full-width">
+            <label for="live_mensaje_offline">Mensaje cuando NO estamos en vivo</label>
+            <textarea id="live_mensaje_offline" name="live_mensaje_offline" rows="2"><?php echo esc_textarea(get_post_meta($post->ID, 'live_mensaje_offline', true) ?: 'No estamos en vivo en este momento. Próximo servicio: Domingo 10:00 AM'); ?></textarea>
         </div>
     </div>
     <?php
 }
 
 /**
- * Template INICIO: Sección Adolescentes
+ * Template INICIO: Sección Encuentra Tu Lugar
  */
-function cfc_inicio_adolescentes_html($post) {
+function cfc_inicio_encuentralugar_html($post) {
     ?>
     <div class="cfc-metabox-grid">
+        <!-- Header de la sección -->
+        <div class="cfc-section-title">Encabezado de Sección</div>
+        <div class="cfc-metabox-field">
+            <label for="etl_badge">Texto del Badge</label>
+            <input type="text" id="etl_badge" name="etl_badge" value="<?php echo esc_attr(get_post_meta($post->ID, 'etl_badge', true) ?: 'Únete a la familia'); ?>">
+        </div>
+        <div class="cfc-metabox-field">
+            <label for="etl_subtitulo">Subtítulo</label>
+            <input type="text" id="etl_subtitulo" name="etl_subtitulo" value="<?php echo esc_attr(get_post_meta($post->ID, 'etl_subtitulo', true) ?: 'Conéctate con personas de tu edad y crece en comunidad'); ?>">
+        </div>
+        <div class="cfc-metabox-field">
+            <label for="etl_titulo_1">Título Línea 1</label>
+            <input type="text" id="etl_titulo_1" name="etl_titulo_1" value="<?php echo esc_attr(get_post_meta($post->ID, 'etl_titulo_1', true) ?: 'Encuentra Tu'); ?>">
+        </div>
+        <div class="cfc-metabox-field">
+            <label for="etl_titulo_2">Título Línea 2 (destacado)</label>
+            <input type="text" id="etl_titulo_2" name="etl_titulo_2" value="<?php echo esc_attr(get_post_meta($post->ID, 'etl_titulo_2', true) ?: 'Lugar'); ?>">
+        </div>
+
+        <!-- Subsección Adolescentes -->
+        <div class="cfc-section-title">Card Adolescentes</div>
         <div class="cfc-metabox-field">
             <label for="adol_titulo">Título</label>
             <input type="text" id="adol_titulo" name="adol_titulo" value="<?php echo esc_attr(get_post_meta($post->ID, 'adol_titulo', true) ?: 'Adolescentes'); ?>">
@@ -1364,18 +1427,15 @@ function cfc_inicio_adolescentes_html($post) {
         </div>
         <div class="cfc-metabox-field full-width">
             <label for="adol_desc">Descripción</label>
-            <textarea id="adol_desc" name="adol_desc" rows="3"><?php echo esc_textarea(get_post_meta($post->ID, 'adol_desc', true)); ?></textarea>
+            <textarea id="adol_desc" name="adol_desc" rows="2"><?php echo esc_textarea(get_post_meta($post->ID, 'adol_desc', true)); ?></textarea>
         </div>
-    </div>
-    <?php
-}
+        <div class="cfc-metabox-field full-width">
+            <label for="adol_btn_url">URL del Botón</label>
+            <input type="text" id="adol_btn_url" name="adol_btn_url" value="<?php echo esc_attr(get_post_meta($post->ID, 'adol_btn_url', true)); ?>" placeholder="https://wa.me/507... o mailto:correo@ejemplo.com">
+        </div>
 
-/**
- * Template INICIO: Sección Jóvenes
- */
-function cfc_inicio_jovenes_html($post) {
-    ?>
-    <div class="cfc-metabox-grid">
+        <!-- Subsección Jóvenes -->
+        <div class="cfc-section-title">Card Jóvenes</div>
         <div class="cfc-metabox-field">
             <label for="jov_titulo">Título</label>
             <input type="text" id="jov_titulo" name="jov_titulo" value="<?php echo esc_attr(get_post_meta($post->ID, 'jov_titulo', true) ?: 'Jóvenes'); ?>">
@@ -1394,7 +1454,37 @@ function cfc_inicio_jovenes_html($post) {
         </div>
         <div class="cfc-metabox-field full-width">
             <label for="jov_desc">Descripción</label>
-            <textarea id="jov_desc" name="jov_desc" rows="3"><?php echo esc_textarea(get_post_meta($post->ID, 'jov_desc', true)); ?></textarea>
+            <textarea id="jov_desc" name="jov_desc" rows="2"><?php echo esc_textarea(get_post_meta($post->ID, 'jov_desc', true)); ?></textarea>
+        </div>
+        <div class="cfc-metabox-field full-width">
+            <label for="jov_btn_url">URL del Botón</label>
+            <input type="text" id="jov_btn_url" name="jov_btn_url" value="<?php echo esc_attr(get_post_meta($post->ID, 'jov_btn_url', true)); ?>" placeholder="https://wa.me/507... o mailto:correo@ejemplo.com">
+        </div>
+    </div>
+    <?php
+}
+
+/**
+ * Template INICIO: Sección Reflexiones Recientes
+ */
+function cfc_inicio_reflexiones_html($post) {
+    ?>
+    <div class="cfc-metabox-grid">
+        <div class="cfc-metabox-field">
+            <label for="ref_badge">Texto del Badge</label>
+            <input type="text" id="ref_badge" name="ref_badge" value="<?php echo esc_attr(get_post_meta($post->ID, 'ref_badge', true) ?: 'Contenido'); ?>">
+        </div>
+        <div class="cfc-metabox-field">
+            <label for="ref_subtitulo">Subtítulo</label>
+            <input type="text" id="ref_subtitulo" name="ref_subtitulo" value="<?php echo esc_attr(get_post_meta($post->ID, 'ref_subtitulo', true) ?: 'Inspiración y enseñanzas para transformar tu vida diaria'); ?>">
+        </div>
+        <div class="cfc-metabox-field">
+            <label for="ref_titulo_1">Título Línea 1</label>
+            <input type="text" id="ref_titulo_1" name="ref_titulo_1" value="<?php echo esc_attr(get_post_meta($post->ID, 'ref_titulo_1', true) ?: 'Reflexiones'); ?>">
+        </div>
+        <div class="cfc-metabox-field">
+            <label for="ref_titulo_2">Título Línea 2 (destacado)</label>
+            <input type="text" id="ref_titulo_2" name="ref_titulo_2" value="<?php echo esc_attr(get_post_meta($post->ID, 'ref_titulo_2', true) ?: 'Recientes'); ?>">
         </div>
     </div>
     <?php
@@ -1576,14 +1666,17 @@ function cfc_page_fields_save($post_id) {
         'horario_viernes_nombre', 'horario_viernes_hora', 'horario_viernes_desc',
         'horario_sabado_nombre', 'horario_sabado_hora', 'horario_sabado_desc',
         'galeria_1', 'galeria_2', 'galeria_3',
-        // Quienes Somos - Hero + Mision
+        // Quienes Somos - Hero + Pastores + Mision
         'quienes_hero_titulo', 'quienes_hero_subtitulo', 'quienes_hero_imagen',
+        'pastores_imagen', 'pastores_texto', 'pastores_nombres',
         'mision', 'vision',
         // Inicio - Hero + Adolescentes + Jovenes + Ubicacion
         'hero_video_url', 'hero_image_url', 'hero_badge', 'hero_mostrar_badge', 'hero_titulo_1', 'hero_titulo_2',
-        'hero_btn1_texto', 'hero_btn1_url', 'hero_btn2_texto', 'hero_btn2_url',
-        'adol_titulo', 'adol_desc', 'adol_edad', 'adol_horario', 'adol_imagen',
-        'jov_titulo', 'jov_desc', 'jov_edad', 'jov_horario', 'jov_imagen',
+        'hero_btn1_texto', 'hero_btn1_url', 'hero_btn2_texto', 'hero_btn2_url', 'live_mensaje_offline',
+        'adol_titulo', 'adol_desc', 'adol_edad', 'adol_horario', 'adol_imagen', 'adol_btn_url',
+        'jov_titulo', 'jov_desc', 'jov_edad', 'jov_horario', 'jov_imagen', 'jov_btn_url',
+        'etl_badge', 'etl_titulo_1', 'etl_titulo_2', 'etl_subtitulo',
+        'ref_badge', 'ref_titulo_1', 'ref_titulo_2', 'ref_subtitulo',
         'ubicacion_direccion', 'ubi_badge', 'ubi_titulo_1', 'ubi_titulo_2', 'ubi_maps_url', 'ubi_maps_texto',
         // Eventos - Hero + Calendar
         'eventos_hero_titulo', 'eventos_hero_subtitulo', 'eventos_hero_imagen',
@@ -1601,7 +1694,7 @@ function cfc_page_fields_save($post_id) {
     }
 
     // Handle checkbox fields specially (they don't send value when unchecked)
-    $checkbox_fields = array('hero_mostrar_badge', 'ubi_mostrar_badge');
+    $checkbox_fields = array('hero_mostrar_badge', 'ubi_mostrar_badge', 'estamos_en_vivo');
     foreach ($checkbox_fields as $checkbox) {
         $value = isset($_POST[$checkbox]) ? '1' : '0';
         update_post_meta($post_id, $checkbox, $value);
@@ -1621,8 +1714,8 @@ function cfc_page_metaboxes_visibility_script() {
         var metaboxMap = {
             'dar': ['cfc_dar_hero', 'cfc_dar_banco'],
             'visitanos': ['cfc_visitanos_hero', 'cfc_visitanos_horarios', 'cfc_visitanos_galeria'],
-            'quienes-somos': ['cfc_quienes_hero', 'cfc_quienes_mision'],
-            'inicio': ['cfc_inicio_hero', 'cfc_inicio_ubicacion', 'cfc_inicio_adolescentes', 'cfc_inicio_jovenes'],
+            'quienes-somos': ['cfc_quienes_hero', 'cfc_quienes_pastores', 'cfc_quienes_mision'],
+            'inicio': ['cfc_inicio_hero', 'cfc_inicio_ubicacion', 'cfc_inicio_encuentralugar', 'cfc_inicio_reflexiones'],
             'eventos': ['cfc_eventos_hero', 'cfc_eventos_calendar'],
             'ministerios': ['cfc_ministerios_hero'],
             'reflexiones': ['cfc_reflexiones_hero']
@@ -2005,13 +2098,15 @@ function cfc_equipo_visual_html($post) {
         <div class="cfc-metabox-field">
             <label for="color">Color del badge</label>
             <select id="color" name="color">
-                <option value="primary" <?php selected($color, 'primary'); ?>>Azul (Pastores)</option>
+                <option value="primary" <?php selected($color, 'primary'); ?>>Azul Primario (Evangelismo)</option>
                 <option value="purple" <?php selected($color, 'purple'); ?>>Morado (Alabanza)</option>
                 <option value="blue" <?php selected($color, 'blue'); ?>>Celeste (Jóvenes)</option>
-                <option value="orange" <?php selected($color, 'orange'); ?>>Naranja (Niños)</option>
-                <option value="green" <?php selected($color, 'green'); ?>>Verde (Administración)</option>
+                <option value="orange" <?php selected($color, 'orange'); ?>>Naranja (Niños/Ujieres)</option>
+                <option value="green" <?php selected($color, 'green'); ?>>Verde (Células)</option>
                 <option value="indigo" <?php selected($color, 'indigo'); ?>>Índigo (Varones)</option>
                 <option value="pink" <?php selected($color, 'pink'); ?>>Rosa (Mujeres)</option>
+                <option value="teal" <?php selected($color, 'teal'); ?>>Turquesa (Multimedia)</option>
+                <option value="amber" <?php selected($color, 'amber'); ?>>Ámbar (Administración)</option>
             </select>
         </div>
     </div>

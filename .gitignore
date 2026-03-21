@@ -18,3 +18,7 @@ Thumbs.db
 
 # Build
 *.map
+
+# Release
+cfcfamiliar.zip
+release.sh

@@ -61,7 +61,7 @@
     </header>
 
     <!-- Mobile Menu -->
-    <div id="mobile-menu" class="fixed inset-0 bg-gradient-to-br from-primary via-secondary to-accent z-40 transform translate-x-full transition-transform duration-500 ease-in-out md:hidden">
+    <div id="mobile-menu" class="fixed inset-0 bg-gradient-to-br from-primary via-secondary to-accent z-[60] transform translate-x-full transition-transform duration-500 ease-in-out md:hidden">
         <!-- Overlay decorativo -->
         <div class="absolute inset-0 opacity-10">
             <div class="absolute inset-0" style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 30px 30px;"></div>

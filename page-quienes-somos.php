@@ -16,6 +16,8 @@ $colores = array(
     'green'   => array('bg' => 'from-green-500 to-teal-500', 'text' => 'text-green-600'),
     'indigo'  => array('bg' => 'from-indigo-500 to-purple-500', 'text' => 'text-indigo-600'),
     'pink'    => array('bg' => 'from-pink-500 to-rose-500', 'text' => 'text-pink-600'),
+    'teal'    => array('bg' => 'from-teal-500 to-cyan-500', 'text' => 'text-teal-600'),
+    'amber'   => array('bg' => 'from-amber-500 to-yellow-500', 'text' => 'text-amber-600'),
 );
 ?>
 
@@ -171,15 +173,76 @@ $colores = array(
         </div>
     </section>
 
-    <!-- Equipo Section -->
+    <!-- Nuestro Liderazgo (Pastores) -->
+    <?php
+    $pastores_imagen = get_post_meta(get_the_ID(), 'pastores_imagen', true);
+    $pastores_texto = get_post_meta(get_the_ID(), 'pastores_texto', true) ?: 'Confiando en Dios quien nos da la sabiduría y fortaleza, para proclamar las buenas nuevas de Salvación. Continuamos escuchando la voz de Dios y que sea guía en nuestro caminar, para que cuando venga nos encuentre haciendo su voluntad.';
+    $pastores_nombres = get_post_meta(get_the_ID(), 'pastores_nombres', true) ?: 'Pastores – Julio y Gladys Bolivar';
+    ?>
     <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4" data-aos="fade-up">
+                    Nuestro <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Liderazgo</span>
+                </h2>
+            </div>
+
+            <div class="max-w-6xl mx-auto">
+                <div class="bg-gradient-to-br from-gray-50 to-white rounded-3xl shadow-2xl overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+                    <div class="grid md:grid-cols-2 items-center">
+                        <!-- Imagen -->
+                        <div class="relative h-80 md:h-full min-h-[400px] order-2 md:order-1">
+                            <?php if ($pastores_imagen) : ?>
+                                <img src="<?php echo esc_url($pastores_imagen); ?>"
+                                     alt="<?php echo esc_attr($pastores_nombres); ?>"
+                                     class="w-full h-full object-cover">
+                            <?php else : ?>
+                                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
+                                    <div class="text-center p-8">
+                                        <span class="text-8xl opacity-30">&#128106;</span>
+                                        <p class="text-gray-400 mt-4">Sube una foto de la familia pastoral</p>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                            <div class="absolute inset-0 bg-gradient-to-r from-transparent to-white/20 md:bg-gradient-to-l md:from-white/30 md:to-transparent"></div>
+                        </div>
+
+                        <!-- Texto -->
+                        <div class="p-10 md:p-12 order-1 md:order-2">
+                            <div class="flex items-center gap-4 mb-6">
+                                <div class="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg">
+                                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                    </svg>
+                                </div>
+                                <div class="w-16 h-[2px] bg-gradient-to-r from-primary/50 to-transparent"></div>
+                            </div>
+                            <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+                                <?php echo esc_html($pastores_nombres); ?>
+                            </h3>
+                            <p class="text-lg text-gray-600 leading-relaxed mb-6">
+                                <?php echo esc_html($pastores_texto); ?>
+                            </p>
+                            <div class="flex items-center gap-3">
+                                <span class="w-12 h-1 bg-gradient-to-r from-primary to-secondary rounded-full"></span>
+                                <span class="text-sm text-primary font-semibold tracking-wider uppercase">Familia Pastoral</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Equipo Section -->
+    <section class="py-20 bg-gray-50">
         <div class="container mx-auto px-6">
             <div class="text-center mb-16">
                 <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
                     Quién es <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Quién</span>
                 </h2>
                 <p class="text-gray-600 text-lg max-w-2xl mx-auto">
-                    Un equipo apasionado sirviendo juntos a nuestra comunidad
+                    Nuestro equipo de líderes sirviendo juntos
                 </p>
             </div>
 
@@ -233,14 +296,49 @@ $colores = array(
                     endwhile;
                     wp_reset_postdata();
                 else :
+                    // Fallback: 9 líderes de ejemplo
+                    $lideres_fallback = array(
+                        array('nombre' => 'Líder de Alabanza', 'cargo' => 'Director de Alabanza', 'icono' => '&#127925;', 'color' => 'purple'),
+                        array('nombre' => 'Líder de Jóvenes', 'cargo' => 'Ministerio Juvenil', 'icono' => '&#128640;', 'color' => 'blue'),
+                        array('nombre' => 'Líder de Niños', 'cargo' => 'Ministerio Infantil', 'icono' => '&#11088;', 'color' => 'orange'),
+                        array('nombre' => 'Líder de Damas', 'cargo' => 'Ministerio de Mujeres', 'icono' => '&#128144;', 'color' => 'pink'),
+                        array('nombre' => 'Líder de Caballeros', 'cargo' => 'Ministerio de Hombres', 'icono' => '&#128170;', 'color' => 'indigo'),
+                        array('nombre' => 'Líder de Células', 'cargo' => 'Grupos Pequeños', 'icono' => '&#127968;', 'color' => 'green'),
+                        array('nombre' => 'Líder de Evangelismo', 'cargo' => 'Alcance y Misiones', 'icono' => '&#127758;', 'color' => 'primary'),
+                        array('nombre' => 'Líder de Multimedia', 'cargo' => 'Audio y Video', 'icono' => '&#127909;', 'color' => 'blue'),
+                        array('nombre' => 'Líder de Ujieres', 'cargo' => 'Protocolo y Bienvenida', 'icono' => '&#128075;', 'color' => 'orange'),
+                    );
+                    $delay = 0;
+                    foreach ($lideres_fallback as $lider) :
+                        $color_classes = isset($colores[$lider['color']]) ? $colores[$lider['color']] : $colores['primary'];
                 ?>
-                <!-- Mensaje si no hay equipo -->
-                <div class="col-span-full text-center py-12">
-                    <div class="text-6xl mb-4">&#128101;</div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Equipo por agregar</h3>
-                    <p class="text-gray-600">Ve al admin → Equipo → Agregar Nuevo para agregar miembros del equipo.</p>
+                <div class="group" data-aos="fade-up" data-aos-delay="<?php echo $delay; ?>">
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500">
+                        <!-- Imagen -->
+                        <div class="aspect-[4/5] overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
+                            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                                <span class="text-6xl opacity-30">&#128100;</span>
+                            </div>
+                        </div>
+
+                        <!-- Info -->
+                        <div class="p-6 bg-gradient-to-br from-gray-50 to-white">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-12 h-12 bg-gradient-to-br <?php echo esc_attr($color_classes['bg']); ?> rounded-xl flex items-center justify-center shadow-md">
+                                    <span class="text-xl"><?php echo $lider['icono']; ?></span>
+                                </div>
+                                <div class="w-16 h-[2px] bg-gradient-to-r from-primary/30 to-transparent"></div>
+                            </div>
+                            <h4 class="font-bold text-gray-900 text-xl mb-1"><?php echo esc_html($lider['nombre']); ?></h4>
+                            <p class="text-sm <?php echo esc_attr($color_classes['text']); ?> font-semibold tracking-wider uppercase"><?php echo esc_html($lider['cargo']); ?></p>
+                        </div>
+                    </div>
                 </div>
-                <?php endif; ?>
+                <?php
+                        $delay += 50;
+                        if ($delay > 250) $delay = 0;
+                    endforeach;
+                endif; ?>
             </div>
         </div>
     </section>
@@ -284,6 +382,20 @@ $colores = array(
             </div>
         </div>
     </section>
+
+    <?php
+    // Zona de contenido libre (editor de WordPress)
+    $content = get_the_content();
+    if (!empty(trim($content))) :
+    ?>
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto cfc-content">
+                <?php the_content(); ?>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
 
     <!-- CTA Section -->
     <section class="py-20 bg-gradient-to-r from-primary via-secondary to-accent text-white">

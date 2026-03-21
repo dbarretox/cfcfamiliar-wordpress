@@ -40,6 +40,8 @@ $hero_btn2_url = get_post_meta($inicio_page_id, 'hero_btn2_url', true);
 if (empty($hero_btn2_url)) {
     $hero_btn2_url = cfc_get_option('youtube_live_url', cfc_default('youtube_live_url'));
 }
+$estamos_en_vivo = get_post_meta($inicio_page_id, 'estamos_en_vivo', true);
+$live_mensaje_offline = get_post_meta($inicio_page_id, 'live_mensaje_offline', true) ?: 'No estamos en vivo en este momento. Próximo servicio: Domingo 10:00 AM';
 $default_video = get_template_directory_uri() . '/assets/videos/cfcintrohomepage.mp4';
 
 // Ubicación fields from page meta
@@ -53,6 +55,22 @@ if (empty($ubi_maps_url)) {
     $ubi_maps_url = cfc_get_option('google_maps_url', cfc_default('google_maps_url'));
 }
 $ubi_maps_texto = get_post_meta($inicio_page_id, 'ubi_maps_texto', true) ?: 'Abrir en Google Maps';
+
+// Adolescentes & Jóvenes button URLs
+$adol_btn_url = get_post_meta($inicio_page_id, 'adol_btn_url', true) ?: '#';
+$jov_btn_url = get_post_meta($inicio_page_id, 'jov_btn_url', true) ?: '#';
+
+// Sección Encuentra Tu Lugar
+$etl_badge = get_post_meta($inicio_page_id, 'etl_badge', true) ?: 'Únete a la familia';
+$etl_titulo_1 = get_post_meta($inicio_page_id, 'etl_titulo_1', true) ?: 'Encuentra Tu';
+$etl_titulo_2 = get_post_meta($inicio_page_id, 'etl_titulo_2', true) ?: 'Lugar';
+$etl_subtitulo = get_post_meta($inicio_page_id, 'etl_subtitulo', true) ?: 'Conéctate con personas de tu edad y crece en comunidad';
+
+// Sección Reflexiones Recientes
+$ref_badge = get_post_meta($inicio_page_id, 'ref_badge', true) ?: 'Contenido';
+$ref_titulo_1 = get_post_meta($inicio_page_id, 'ref_titulo_1', true) ?: 'Reflexiones';
+$ref_titulo_2 = get_post_meta($inicio_page_id, 'ref_titulo_2', true) ?: 'Recientes';
+$ref_subtitulo = get_post_meta($inicio_page_id, 'ref_subtitulo', true) ?: 'Inspiración y enseñanzas para transformar tu vida diaria';
 
 get_header();
 ?>
@@ -118,12 +136,22 @@ get_header();
                     <div class="absolute inset-0 bg-gradient-to-r from-primary to-secondary transform -skew-x-12 scale-x-0 group-hover:scale-x-110 transition-transform origin-left duration-300"></div>
                 </a>
 
-                <a href="<?php echo esc_url($hero_btn2_url); ?>" target="_blank" class="group inline-flex items-center gap-3 px-8 py-4 bg-white/10 backdrop-blur-md border-2 border-white/30 text-white rounded-full font-bold text-lg hover:bg-white/20 transition-all duration-300">
+                <?php if ($estamos_en_vivo === '1') : ?>
+                <a href="<?php echo esc_url($hero_btn2_url); ?>" target="_blank" class="group inline-flex items-center gap-3 px-8 py-4 bg-red-500/90 backdrop-blur-md border-2 border-red-400 text-white rounded-full font-bold text-lg hover:bg-red-600 transition-all duration-300 animate-pulse">
+                    <span class="relative flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                    </span>
+                    <?php echo esc_html($hero_btn2_texto); ?>
+                </a>
+                <?php else : ?>
+                <button type="button" onclick="document.getElementById('modal-no-live').classList.remove('hidden')" class="group inline-flex items-center gap-3 px-8 py-4 bg-white/10 backdrop-blur-md border-2 border-white/30 text-white rounded-full font-bold text-lg hover:bg-white/20 transition-all duration-300">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"></path>
                     </svg>
                     <?php echo esc_html($hero_btn2_texto); ?>
-                </a>
+                </button>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -254,13 +282,13 @@ get_header();
                         <svg class="w-4 h-4 text-secondary" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
                         </svg>
-                        <span class="text-secondary text-sm font-bold uppercase tracking-wider">Únete a la familia</span>
+                        <span class="text-secondary text-sm font-bold uppercase tracking-wider"><?php echo esc_html($etl_badge); ?></span>
                     </div>
                     <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
-                        Encuentra Tu <span class="text-transparent bg-clip-text bg-gradient-to-r from-secondary to-accent">Lugar</span>
+                        <?php echo esc_html($etl_titulo_1); ?> <span class="text-transparent bg-clip-text bg-gradient-to-r from-secondary to-accent"><?php echo esc_html($etl_titulo_2); ?></span>
                     </h2>
                     <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-                        Conéctate con personas de tu edad y crece en comunidad
+                        <?php echo esc_html($etl_subtitulo); ?>
                     </p>
                 </div>
 
@@ -314,7 +342,7 @@ get_header();
                             </div>
 
                             <!-- Botón -->
-                            <a href="#" class="group/btn relative w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 overflow-hidden">
+                            <a href="<?php echo esc_url($adol_btn_url); ?>" class="group/btn relative w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 overflow-hidden">
                                 <span class="relative z-10">Únete al Grupo</span>
                                 <svg class="w-5 h-5 relative z-10 transition-transform group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
@@ -372,7 +400,7 @@ get_header();
                             </div>
 
                             <!-- Botón -->
-                            <a href="#" class="group/btn relative w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 overflow-hidden">
+                            <a href="<?php echo esc_url($jov_btn_url); ?>" class="group/btn relative w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 overflow-hidden">
                                 <span class="relative z-10">Únete al Grupo</span>
                                 <svg class="w-5 h-5 relative z-10 transition-transform group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
@@ -396,13 +424,13 @@ get_header();
                         <svg class="w-4 h-4 text-rose" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
                         </svg>
-                        <span class="text-rose text-sm font-bold uppercase tracking-wider">Contenido</span>
+                        <span class="text-rose text-sm font-bold uppercase tracking-wider"><?php echo esc_html($ref_badge); ?></span>
                     </div>
                     <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
-                        Reflexiones <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose to-pink-500">Recientes</span>
+                        <?php echo esc_html($ref_titulo_1); ?> <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose to-pink-500"><?php echo esc_html($ref_titulo_2); ?></span>
                     </h2>
                     <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-                        Inspiración y enseñanzas para transformar tu vida diaria
+                        <?php echo esc_html($ref_subtitulo); ?>
                     </p>
                 </div>
 
@@ -550,5 +578,38 @@ get_header();
             </div>
         </div>
     </section>
+
+    <!-- Modal No Estamos en Vivo -->
+    <div id="modal-no-live" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Overlay -->
+            <div class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" onclick="document.getElementById('modal-no-live').classList.add('hidden')"></div>
+
+            <!-- Modal Content -->
+            <div class="inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-gradient-to-br from-primary to-secondary p-8 text-center">
+                    <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-white/20 mb-4">
+                        <svg class="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">No estamos en vivo</h3>
+                </div>
+                <div class="bg-white px-8 py-6">
+                    <p class="text-gray-600 text-center text-lg leading-relaxed">
+                        <?php echo esc_html($live_mensaje_offline); ?>
+                    </p>
+                </div>
+                <div class="bg-gray-50 px-8 py-4">
+                    <button type="button" onclick="document.getElementById('modal-no-live').classList.add('hidden')" class="w-full inline-flex justify-center items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-full hover:shadow-lg transition-all">
+                        <span>Entendido</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <?php get_footer(); ?>

@@ -145,6 +145,16 @@ $service_time = cfc_get_option('service_time', cfc_default('service_time'));
                     </div>
                 </div>
 
+                <?php
+                // Zona de contenido libre (editor de WordPress)
+                $content = get_the_content();
+                if (!empty(trim($content))) :
+                ?>
+                <div class="mb-12 cfc-content" data-aos="fade-up">
+                    <?php the_content(); ?>
+                </div>
+                <?php endif; ?>
+
                 <!-- CTA Final con WhatsApp -->
                 <div class="bg-gradient-to-r from-primary via-secondary to-accent text-white rounded-3xl p-10 text-center" data-aos="zoom-in">
                     <h3 class="text-2xl md:text-3xl font-bold mb-4">¿Tienes preguntas?</h3>

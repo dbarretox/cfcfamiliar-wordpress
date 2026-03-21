@@ -223,4 +223,22 @@ $hero_imagen = get_post_meta($page_id, 'ministerios_hero_imagen', true) ?: 'http
         </div>
     </section>
 
+    <?php
+    // Zona de contenido libre desde la página (si viene de page template)
+    if (is_page()) :
+        $content = get_the_content();
+        if (!empty(trim($content))) :
+    ?>
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto cfc-content">
+                <?php the_content(); ?>
+            </div>
+        </div>
+    </section>
+    <?php
+        endif;
+    endif;
+    ?>
+
 <?php get_footer(); ?>
