@@ -16,19 +16,6 @@ $hero_titulo_1 = get_post_meta(get_the_ID(), 'hero_titulo_1', true) ?: 'Centro F
 $hero_titulo_2 = get_post_meta(get_the_ID(), 'hero_titulo_2', true) ?: 'Cristiano';
 $default_video = get_template_directory_uri() . '/assets/videos/cfcintrohomepage.mp4';
 
-// Adolescentes
-$adol_titulo = get_post_meta(get_the_ID(), 'adol_titulo', true) ?: 'Adolescentes';
-$adol_desc = get_post_meta(get_the_ID(), 'adol_desc', true) ?: 'Un espacio donde los adolescentes descubren su identidad en Cristo, forman amistades genuinas y se divierten juntos.';
-$adol_edad = get_post_meta(get_the_ID(), 'adol_edad', true) ?: '13-17 años';
-$adol_horario = get_post_meta(get_the_ID(), 'adol_horario', true) ?: 'Sábados 4:00 PM';
-$adol_imagen = get_post_meta(get_the_ID(), 'adol_imagen', true) ?: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=600&h=300&fit=crop';
-
-// Jóvenes
-$jov_titulo = get_post_meta(get_the_ID(), 'jov_titulo', true) ?: 'Jóvenes';
-$jov_desc = get_post_meta(get_the_ID(), 'jov_desc', true) ?: 'Conecta con jóvenes adultos mientras navegas los desafíos de la vida, el trabajo y las relaciones con fe y propósito.';
-$jov_edad = get_post_meta(get_the_ID(), 'jov_edad', true) ?: '18-30 años';
-$jov_horario = get_post_meta(get_the_ID(), 'jov_horario', true) ?: 'Viernes 7:00 PM';
-$jov_imagen = get_post_meta(get_the_ID(), 'jov_imagen', true) ?: 'https://images.unsplash.com/photo-1523301343968-6a6ebf63c672?w=600&h=300&fit=crop';
 ?>
 
     <!-- Hero Section -->
@@ -217,9 +204,9 @@ $jov_imagen = get_post_meta(get_the_ID(), 'jov_imagen', true) ?: 'https://images
     <!-- Sección Conéctate -->
     <section id="conexion" class="py-20 bg-gradient-to-br from-gray-50 via-blue-50/30 to-cyan-50/30">
         <div class="container mx-auto px-6">
-            <div class="max-w-6xl mx-auto">
+            <div class="max-w-7xl mx-auto">
                 <!-- Header -->
-                <div class="text-center mb-16" data-aos="fade-up">
+                <div class="text-center mb-12" data-aos="fade-up">
                     <div class="inline-flex items-center gap-2 px-4 py-2 bg-secondary/10 rounded-full mb-4">
                         <svg class="w-4 h-4 text-secondary" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
@@ -234,124 +221,109 @@ $jov_imagen = get_post_meta(get_the_ID(), 'jov_imagen', true) ?: 'https://images
                     </p>
                 </div>
 
-                <!-- Grid de grupos -->
-                <div class="grid md:grid-cols-2 gap-8">
-                    <!-- Card Adolescentes -->
-                    <div class="group bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 border border-gray-100" data-aos="fade-right">
+                <?php
+                // Color maps for gradients
+                $color_gradients = array(
+                    'purple' => array('from' => 'from-purple-500', 'to' => 'to-pink-500', 'hover_from' => 'from-purple-600', 'hover_to' => 'to-pink-600', 'overlay_from' => 'from-purple-900/80', 'overlay_via' => 'via-purple-600/40', 'bg' => 'bg-purple-50', 'text' => 'text-purple-600', 'badge_text' => 'text-purple-700'),
+                    'blue'   => array('from' => 'from-blue-500', 'to' => 'to-cyan-500', 'hover_from' => 'from-blue-600', 'hover_to' => 'to-cyan-600', 'overlay_from' => 'from-blue-900/80', 'overlay_via' => 'via-blue-600/40', 'bg' => 'bg-blue-50', 'text' => 'text-blue-600', 'badge_text' => 'text-blue-700'),
+                    'green'  => array('from' => 'from-green-500', 'to' => 'to-teal-500', 'hover_from' => 'from-green-600', 'hover_to' => 'to-teal-600', 'overlay_from' => 'from-green-900/80', 'overlay_via' => 'via-green-600/40', 'bg' => 'bg-green-50', 'text' => 'text-green-600', 'badge_text' => 'text-green-700'),
+                    'orange' => array('from' => 'from-orange-500', 'to' => 'to-amber-500', 'hover_from' => 'from-orange-600', 'hover_to' => 'to-amber-600', 'overlay_from' => 'from-orange-900/80', 'overlay_via' => 'via-orange-600/40', 'bg' => 'bg-orange-50', 'text' => 'text-orange-600', 'badge_text' => 'text-orange-700'),
+                    'pink'   => array('from' => 'from-pink-500', 'to' => 'to-rose-500', 'hover_from' => 'from-pink-600', 'hover_to' => 'to-rose-600', 'overlay_from' => 'from-pink-900/80', 'overlay_via' => 'via-pink-600/40', 'bg' => 'bg-pink-50', 'text' => 'text-pink-600', 'badge_text' => 'text-pink-700'),
+                );
+
+                $grupos_query = new WP_Query(array(
+                    'post_type'      => 'cfc_grupo',
+                    'posts_per_page' => -1,
+                    'post_status'    => 'publish',
+                    'meta_key'       => 'orden',
+                    'orderby'        => 'meta_value_num',
+                    'order'          => 'ASC',
+                ));
+
+                if ($grupos_query->have_posts()) : ?>
+                <!-- Carousel de grupos -->
+                <div class="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth" style="-webkit-overflow-scrolling: touch; scrollbar-width: thin;">
+                    <?php while ($grupos_query->have_posts()) : $grupos_query->the_post();
+                        $rango_edad = get_post_meta(get_the_ID(), 'rango_edad', true);
+                        $horario    = get_post_meta(get_the_ID(), 'horario', true);
+                        $imagen_url = get_post_meta(get_the_ID(), 'imagen_url', true);
+                        $btn_url    = get_post_meta(get_the_ID(), 'btn_url', true) ?: '#';
+                        $btn_texto  = get_post_meta(get_the_ID(), 'btn_texto', true) ?: 'Únete al Grupo';
+                        $color      = get_post_meta(get_the_ID(), 'color', true) ?: 'purple';
+                        $c          = isset($color_gradients[$color]) ? $color_gradients[$color] : $color_gradients['purple'];
+
+                        // Image: featured image > imagen_url meta > placeholder
+                        $image = '';
+                        if (has_post_thumbnail()) {
+                            $image = get_the_post_thumbnail_url(get_the_ID(), 'medium');
+                        } elseif ($imagen_url) {
+                            $image = $imagen_url;
+                        } else {
+                            $image = 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=600&h=300&fit=crop';
+                        }
+                    ?>
+                    <div class="group flex-shrink-0 w-[280px] bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 border border-gray-100 snap-start" data-aos="fade-up">
                         <!-- Imagen con overlay -->
-                        <div class="relative h-56 overflow-hidden">
-                            <img src="<?php echo esc_url($adol_imagen); ?>"
-                                 alt="<?php echo esc_attr($adol_titulo); ?>"
+                        <div class="relative h-[150px] overflow-hidden">
+                            <img src="<?php echo esc_url($image); ?>"
+                                 alt="<?php echo esc_attr(get_the_title()); ?>"
                                  class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
-                            <div class="absolute inset-0 bg-gradient-to-t from-purple-900/80 via-purple-600/40 to-transparent"></div>
+                            <div class="absolute inset-0 bg-gradient-to-t <?php echo esc_attr($c['overlay_from'] . ' ' . $c['overlay_via']); ?> to-transparent"></div>
 
                             <!-- Badge flotante -->
-                            <div class="absolute top-4 right-4 bg-white/95 backdrop-blur-sm text-purple-700 px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                                <?php echo esc_html($adol_edad); ?>
+                            <?php if ($rango_edad) : ?>
+                            <div class="absolute top-3 right-3 bg-white/95 backdrop-blur-sm <?php echo esc_attr($c['badge_text']); ?> px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                                <?php echo esc_html($rango_edad); ?>
                             </div>
+                            <?php endif; ?>
 
-                            <!-- Emoji grande -->
-                            <div class="absolute bottom-4 left-4 text-6xl opacity-80">
-                                &#127918;
+                            <!-- Título sobre imagen -->
+                            <div class="absolute bottom-3 left-3">
+                                <h3 class="text-lg font-bold text-white"><?php echo esc_html(get_the_title()); ?></h3>
                             </div>
                         </div>
 
                         <!-- Contenido -->
-                        <div class="p-8">
-                            <div class="flex items-center gap-3 mb-4">
-                                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                                    <span class="text-2xl">&#127919;</span>
-                                </div>
-                                <div>
-                                    <h3 class="text-2xl font-bold text-gray-900"><?php echo esc_html($adol_titulo); ?></h3>
-                                </div>
-                            </div>
-
-                            <p class="text-gray-600 mb-6 leading-relaxed">
-                                <?php echo esc_html($adol_desc); ?>
+                        <div class="p-5">
+                            <p class="text-gray-600 text-sm mb-4 leading-relaxed line-clamp-2">
+                                <?php echo esc_html(get_the_excerpt()); ?>
                             </p>
 
-                            <!-- Detalles con iconos -->
-                            <div class="space-y-3 mb-6">
-                                <div class="flex items-center gap-3 text-sm">
-                                    <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <svg class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </div>
-                                    <span class="text-gray-700 font-medium"><?php echo esc_html($adol_horario); ?></span>
+                            <!-- Horario -->
+                            <?php if ($horario) : ?>
+                            <div class="flex items-center gap-2 mb-4">
+                                <div class="w-7 h-7 <?php echo esc_attr($c['bg']); ?> rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-3.5 h-3.5 <?php echo esc_attr($c['text']); ?>" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                                    </svg>
                                 </div>
+                                <span class="text-gray-700 text-xs font-medium"><?php echo esc_html($horario); ?></span>
                             </div>
+                            <?php endif; ?>
 
                             <!-- Botón -->
-                            <a href="#" class="group/btn relative w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 overflow-hidden">
-                                <span class="relative z-10">Únete al Grupo</span>
-                                <svg class="w-5 h-5 relative z-10 transition-transform group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <a href="<?php echo esc_url($btn_url); ?>" class="group/btn relative w-full flex items-center justify-center gap-2 bg-gradient-to-r <?php echo esc_attr($c['from'] . ' ' . $c['to']); ?> text-white py-2.5 rounded-xl text-sm font-bold hover:shadow-xl transition-all duration-300 overflow-hidden">
+                                <span class="relative z-10"><?php echo esc_html($btn_texto); ?></span>
+                                <svg class="w-4 h-4 relative z-10 transition-transform group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
                                 </svg>
-                                <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 transform scale-x-0 group-hover/btn:scale-x-100 transition-transform origin-left duration-300"></div>
+                                <div class="absolute inset-0 bg-gradient-to-r <?php echo esc_attr($c['hover_from'] . ' ' . $c['hover_to']); ?> transform scale-x-0 group-hover/btn:scale-x-100 transition-transform origin-left duration-300"></div>
                             </a>
                         </div>
                     </div>
-
-                    <!-- Card Jóvenes -->
-                    <div class="group bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 border border-gray-100" data-aos="fade-left" data-aos-delay="100">
-                        <!-- Imagen con overlay -->
-                        <div class="relative h-56 overflow-hidden">
-                            <img src="<?php echo esc_url($jov_imagen); ?>"
-                                 alt="<?php echo esc_attr($jov_titulo); ?>"
-                                 class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
-                            <div class="absolute inset-0 bg-gradient-to-t from-blue-900/80 via-blue-600/40 to-transparent"></div>
-
-                            <!-- Badge flotante -->
-                            <div class="absolute top-4 right-4 bg-white/95 backdrop-blur-sm text-blue-700 px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                                <?php echo esc_html($jov_edad); ?>
-                            </div>
-
-                            <!-- Emoji grande -->
-                            <div class="absolute bottom-4 left-4 text-6xl opacity-80">
-                                &#9749;
-                            </div>
-                        </div>
-
-                        <!-- Contenido -->
-                        <div class="p-8">
-                            <div class="flex items-center gap-3 mb-4">
-                                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
-                                    <span class="text-2xl">&#128640;</span>
-                                </div>
-                                <div>
-                                    <h3 class="text-2xl font-bold text-gray-900"><?php echo esc_html($jov_titulo); ?></h3>
-                                </div>
-                            </div>
-
-                            <p class="text-gray-600 mb-6 leading-relaxed">
-                                <?php echo esc_html($jov_desc); ?>
-                            </p>
-
-                            <!-- Detalles con iconos -->
-                            <div class="space-y-3 mb-6">
-                                <div class="flex items-center gap-3 text-sm">
-                                    <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </div>
-                                    <span class="text-gray-700 font-medium"><?php echo esc_html($jov_horario); ?></span>
-                                </div>
-                            </div>
-
-                            <!-- Botón -->
-                            <a href="#" class="group/btn relative w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-4 rounded-xl font-bold hover:shadow-xl transition-all duration-300 overflow-hidden">
-                                <span class="relative z-10">Únete al Grupo</span>
-                                <svg class="w-5 h-5 relative z-10 transition-transform group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                                </svg>
-                                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 transform scale-x-0 group-hover/btn:scale-x-100 transition-transform origin-left duration-300"></div>
-                            </a>
-                        </div>
-                    </div>
+                    <?php endwhile; wp_reset_postdata(); ?>
                 </div>
+                <?php else : ?>
+                    <?php if (current_user_can('manage_options')) : ?>
+                    <div class="text-center py-12 bg-white/50 rounded-2xl border-2 border-dashed border-gray-300">
+                        <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <p class="text-gray-500 text-lg mb-2">No hay grupos creados aún.</p>
+                        <p class="text-gray-400 text-sm">Crea grupos desde el panel de administración: <strong>Grupos > Agregar Grupo</strong></p>
+                    </div>
+                    <?php endif; ?>
+                <?php endif; ?>
             </div>
         </div>
     </section>
