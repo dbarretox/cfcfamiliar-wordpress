@@ -1,7 +1,6 @@
 <?php
 /**
- * Template Name: Ministerios
- * Page template that displays the Ministerios archive content
+ * Ministerios page template
  *
  * @package CFC_Familiar
  */

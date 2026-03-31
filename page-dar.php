@@ -1,6 +1,6 @@
 <?php
 /**
- * Template Name: Dar
+ * Dar page template
  *
  * @package CFC_Familiar
  */
@@ -111,10 +111,10 @@ $whatsapp = cfc_get_option('church_whatsapp', cfc_default('church_whatsapp'));
                         <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Transferencia Bancaria</h3>
 
                         <?php
-                        $banco_nombre = get_post_meta(get_the_ID(), 'banco_nombre', true) ?: 'Banco General';
-                        $banco_tipo = get_post_meta(get_the_ID(), 'banco_tipo', true) ?: '';
-                        $banco_cuenta = get_post_meta(get_the_ID(), 'banco_cuenta', true) ?: '04-47-99-123456-7';
-                        $banco_titular = get_post_meta(get_the_ID(), 'banco_titular', true) ?: 'Centro Familiar Cristiano';
+                        $banco_nombre = 'Banco General';
+                        $banco_tipo = '';
+                        $banco_cuenta = '04-47-99-123456-7';
+                        $banco_titular = 'Centro Familiar Cristiano';
                         ?>
                         <!-- Banco -->
                         <div class="mb-6 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-primary/10">
@@ -190,9 +190,10 @@ $whatsapp = cfc_get_option('church_whatsapp', cfc_default('church_whatsapp'));
     </section>
 
     <?php
-    // Zona de contenido libre (editor de WordPress)
-    $content = get_the_content();
-    if (!empty(trim($content))) :
+    // Zona de contenido libre (only if loaded as a real WordPress page)
+    if (get_the_ID()) :
+        $content = get_the_content();
+        if (!empty(trim($content))) :
     ?>
     <section class="py-16 bg-white">
         <div class="container mx-auto px-6">
@@ -201,7 +202,7 @@ $whatsapp = cfc_get_option('church_whatsapp', cfc_default('church_whatsapp'));
             </div>
         </div>
     </section>
-    <?php endif; ?>
+    <?php endif; endif; ?>
 
     <!-- CTA Section -->
     <section class="py-20 bg-gradient-to-br from-primary via-secondary to-accent relative overflow-hidden">

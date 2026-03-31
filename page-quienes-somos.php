@@ -1,6 +1,6 @@
 <?php
 /**
- * Template Name: Quiénes Somos
+ * Quiénes Somos page template
  *
  * @package CFC_Familiar
  */
@@ -22,10 +22,10 @@ $colores = array(
 ?>
 
     <?php
-    // Hero section data from metabox
-    $hero_titulo = get_post_meta(get_the_ID(), 'quienes_hero_titulo', true) ?: 'Quiénes Somos';
-    $hero_subtitulo = get_post_meta(get_the_ID(), 'quienes_hero_subtitulo', true) ?: 'Una iglesia con visión de reino, enfocada en la predicación y enseñanza de la palabra';
-    $hero_imagen = get_post_meta(get_the_ID(), 'quienes_hero_imagen', true) ?: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=1920&h=1080&fit=crop';
+    // Hero section defaults
+    $hero_titulo = 'Quiénes Somos';
+    $hero_subtitulo = 'Una iglesia con visión de reino, enfocada en la predicación y enseñanza de la palabra';
+    $hero_imagen = 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=1920&h=1080&fit=crop';
     ?>
     <!-- Hero Section -->
     <section class="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
@@ -59,8 +59,8 @@ $colores = array(
         <div class="container mx-auto px-6">
             <div class="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
                 <?php
-                $mision = get_post_meta(get_the_ID(), 'mision', true) ?: 'Somos una Iglesia que ama, glorifica y sirve a Dios como una sola familia.';
-                $vision = get_post_meta(get_the_ID(), 'vision', true) ?: 'Queremos ser una iglesia comprometida en formar discípulos de Jesús para ganar a la comunidad y al mundo.';
+                $mision = 'Somos una Iglesia que ama, glorifica y sirve a Dios como una sola familia.';
+                $vision = 'Queremos ser una iglesia comprometida en formar discípulos de Jesús para ganar a la comunidad y al mundo.';
                 ?>
                 <!-- Misión -->
                 <div class="text-center" data-aos="fade-right">
@@ -175,9 +175,27 @@ $colores = array(
 
     <!-- Nuestro Liderazgo (Pastores) -->
     <?php
-    $pastores_imagen = get_post_meta(get_the_ID(), 'pastores_imagen', true);
-    $pastores_texto = get_post_meta(get_the_ID(), 'pastores_texto', true) ?: 'Confiando en Dios quien nos da la sabiduría y fortaleza, para proclamar las buenas nuevas de Salvación. Continuamos escuchando la voz de Dios y que sea guía en nuestro caminar, para que cuando venga nos encuentre haciendo su voluntad.';
-    $pastores_nombres = get_post_meta(get_the_ID(), 'pastores_nombres', true) ?: 'Pastores – Julio y Gladys Bolivar';
+    $pastor_query = new WP_Query(array(
+        'post_type' => 'cfc_equipo',
+        'posts_per_page' => 1,
+        'meta_key' => 'es_pastor',
+        'meta_value' => '1',
+    ));
+    if ($pastor_query->have_posts()) :
+        $pastor_query->the_post();
+        $pastores_imagen = has_post_thumbnail() ? get_the_post_thumbnail_url(get_the_ID(), 'large') : '';
+        $pastores_nombres = get_post_meta(get_the_ID(), 'nombre', true) ?: get_the_title();
+        $pastores_cargo = get_post_meta(get_the_ID(), 'cargo', true) ?: '';
+        $pastores_texto = get_post_meta(get_the_ID(), 'biografia', true) ?: '';
+        $pastor_id = get_the_ID();
+        wp_reset_postdata();
+    else :
+        $pastores_imagen = '';
+        $pastores_texto = '';
+        $pastores_nombres = '';
+        $pastor_id = 0;
+    endif;
+    if ($pastor_id) :
     ?>
     <section class="py-20 bg-white">
         <div class="container mx-auto px-6">
@@ -223,16 +241,19 @@ $colores = array(
                             <p class="text-lg text-gray-600 leading-relaxed mb-6">
                                 <?php echo esc_html($pastores_texto); ?>
                             </p>
+                            <?php if ($pastores_cargo) : ?>
                             <div class="flex items-center gap-3">
                                 <span class="w-12 h-1 bg-gradient-to-r from-primary to-secondary rounded-full"></span>
-                                <span class="text-sm text-primary font-semibold tracking-wider uppercase">Familia Pastoral</span>
+                                <span class="text-sm text-primary font-semibold tracking-wider uppercase"><?php echo esc_html($pastores_cargo); ?></span>
                             </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+    <?php endif; ?>
 
     <!-- Equipo Section -->
     <section class="py-20 bg-gray-50">
@@ -248,13 +269,17 @@ $colores = array(
 
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
                 <?php
-                $equipo = new WP_Query(array(
+                $equipo_args = array(
                     'post_type' => 'cfc_equipo',
                     'posts_per_page' => -1,
                     'meta_key' => 'orden',
                     'orderby' => 'meta_value_num',
                     'order' => 'ASC',
-                ));
+                );
+                if ($pastor_id) {
+                    $equipo_args['post__not_in'] = array($pastor_id);
+                }
+                $equipo = new WP_Query($equipo_args);
 
                 if ($equipo->have_posts()) :
                     $delay = 0;
@@ -267,26 +292,33 @@ $colores = array(
                 <div class="group" data-aos="fade-up" data-aos-delay="<?php echo $delay; ?>">
                     <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500">
                         <!-- Imagen -->
-                        <div class="aspect-[4/5] overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
-                            <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('cfc-card', array('class' => 'w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700')); ?>
-                            <?php else : ?>
-                                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                                    <span class="text-6xl opacity-30">&#128100;</span>
-                                </div>
-                            <?php endif; ?>
+                        <?php if (has_post_thumbnail()) : ?>
+                        <div class="overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
+                            <?php the_post_thumbnail('large', array('class' => 'w-full h-auto block transform group-hover:scale-105 transition-transform duration-700')); ?>
                         </div>
+                        <?php else : ?>
+                        <div class="overflow-hidden">
+                            <img src="<?php echo get_template_directory_uri(); ?>/assets/images/placeholder-persona.svg" alt="Sin foto" class="w-full h-auto block">
+                        </div>
+                        <?php endif; ?>
 
                         <!-- Info -->
                         <div class="p-6 bg-gradient-to-br from-gray-50 to-white">
                             <div class="flex items-center gap-3 mb-3">
-                                <div class="w-12 h-12 bg-gradient-to-br <?php echo esc_attr($color_classes['bg']); ?> rounded-xl flex items-center justify-center shadow-md">
-                                    <span class="text-xl"><?php echo $icono; ?></span>
+                                <?php $has_lucide = ($icono && cfc_icon_svg($icono)); ?>
+                                <div class="w-12 h-12 bg-gradient-to-br <?php echo esc_attr($has_lucide ? $color_classes['bg'] : 'from-primary to-secondary'); ?> rounded-xl flex items-center justify-center shadow-md text-white">
+                                    <?php if ($has_lucide) : ?>
+                                        <?php echo cfc_icon_svg($icono, 'w-6 h-6'); ?>
+                                    <?php else : ?>
+                                        <img src="<?php echo get_template_directory_uri(); ?>/assets/images/favicon.svg" alt="" class="w-6 h-6" style="filter: brightness(0) invert(1);">
+                                    <?php endif; ?>
                                 </div>
                                 <div class="w-16 h-[2px] bg-gradient-to-r from-primary/30 to-transparent"></div>
                             </div>
-                            <h4 class="font-bold text-gray-900 text-xl mb-1"><?php the_title(); ?></h4>
+                            <h4 class="font-bold text-gray-900 text-xl mb-1"><?php echo esc_html(get_post_meta(get_the_ID(), 'nombre', true) ?: get_the_title()); ?></h4>
+                            <?php if ($cargo) : ?>
                             <p class="text-sm <?php echo esc_attr($color_classes['text']); ?> font-semibold tracking-wider uppercase"><?php echo esc_html($cargo); ?></p>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -384,9 +416,10 @@ $colores = array(
     </section>
 
     <?php
-    // Zona de contenido libre (editor de WordPress)
-    $content = get_the_content();
-    if (!empty(trim($content))) :
+    // Zona de contenido libre (only if loaded as a real WordPress page)
+    if (get_the_ID()) :
+        $content = get_the_content();
+        if (!empty(trim($content))) :
     ?>
     <section class="py-16 bg-white">
         <div class="container mx-auto px-6">
@@ -395,7 +428,7 @@ $colores = array(
             </div>
         </div>
     </section>
-    <?php endif; ?>
+    <?php endif; endif; ?>
 
     <!-- CTA Section -->
     <section class="py-20 bg-gradient-to-r from-primary via-secondary to-accent text-white">

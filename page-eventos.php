@@ -1,7 +1,6 @@
 <?php
 /**
- * Template Name: Eventos
- * Page template that displays the Eventos archive content
+ * Eventos page template
  *
  * @package CFC_Familiar
  */

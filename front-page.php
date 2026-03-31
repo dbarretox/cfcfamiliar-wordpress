@@ -1,47 +1,27 @@
 <?php
 /**
- * Front Page Template (fallback)
- * Note: Use "Inicio" template for editable homepage
+ * Front Page Template
+ * Renders the homepage directly without needing a WordPress Page
  *
  * @package CFC_Familiar
  */
 
-// Verificar si existe página con template "Inicio" configurada
-$inicio_page = get_pages(array(
-    'meta_key' => '_wp_page_template',
-    'meta_value' => 'page-inicio.php',
-    'number' => 1
-));
+// Church address from global options
+$church_address = cfc_get_option('church_address', cfc_default('church_address'));
 
-if (empty($inicio_page)) {
-    $setup_page_name = 'Inicio';
-    $setup_template_label = 'Inicio';
-    include(get_template_directory() . '/template-parts/setup-required.php');
-    exit;
-}
-
-// Get page-specific overrides
-$inicio_page_id = $inicio_page[0]->ID;
-$custom_direccion = get_post_meta($inicio_page_id, 'ubicacion_direccion', true);
-$church_address = !empty($custom_direccion) ? $custom_direccion : cfc_get_option('church_address', cfc_default('church_address'));
-
-// Hero fields from page meta
-$hero_video = get_post_meta($inicio_page_id, 'hero_video_url', true);
-$hero_image = get_post_meta($inicio_page_id, 'hero_image_url', true);
-$hero_badge = get_post_meta($inicio_page_id, 'hero_badge', true) ?: 'En vivo cada domingo';
-$hero_mostrar_badge = get_post_meta($inicio_page_id, 'hero_mostrar_badge', true);
-if ($hero_mostrar_badge === '') $hero_mostrar_badge = '1';
-$hero_titulo_1 = get_post_meta($inicio_page_id, 'hero_titulo_1', true) ?: 'Centro Familiar';
-$hero_titulo_2 = get_post_meta($inicio_page_id, 'hero_titulo_2', true) ?: 'Cristiano';
-$hero_btn1_texto = get_post_meta($inicio_page_id, 'hero_btn1_texto', true) ?: 'Visítanos Este Domingo';
-$hero_btn1_url = get_post_meta($inicio_page_id, 'hero_btn1_url', true) ?: '#horarios';
-$hero_btn2_texto = get_post_meta($inicio_page_id, 'hero_btn2_texto', true) ?: 'Ver en Vivo';
-$hero_btn2_url = get_post_meta($inicio_page_id, 'hero_btn2_url', true);
-if (empty($hero_btn2_url)) {
-    $hero_btn2_url = cfc_get_option('youtube_live_url', cfc_default('youtube_live_url'));
-}
-$estamos_en_vivo = get_post_meta($inicio_page_id, 'estamos_en_vivo', true);
-$live_mensaje_offline = get_post_meta($inicio_page_id, 'live_mensaje_offline', true) ?: 'No estamos en vivo en este momento. Próximo servicio: Domingo 10:00 AM';
+// Hero fields (defaults)
+$hero_video = '';
+$hero_image = '';
+$hero_badge = 'En vivo cada domingo';
+$hero_mostrar_badge = '1';
+$hero_titulo_1 = 'Centro Familiar';
+$hero_titulo_2 = 'Cristiano';
+$hero_btn1_texto = 'Visítanos Este Domingo';
+$hero_btn1_url = '#horarios';
+$hero_btn2_texto = 'Ver en Vivo';
+$hero_btn2_url = cfc_get_option('youtube_live_url', cfc_default('youtube_live_url'));
+$estamos_en_vivo = '';
+$live_mensaje_offline = 'No estamos en vivo en este momento. Próximo servicio: Domingo 10:00 AM';
 $default_video = get_template_directory_uri() . '/assets/videos/cfcintrohomepage.mp4';
 
 // Ubicación fields from global options (CFC Familiar → Configuraciones)
@@ -53,10 +33,10 @@ $ubi_maps_url = cfc_get_option('google_maps_url', cfc_default('google_maps_url')
 $ubi_maps_texto = 'Abrir en Google Maps';
 
 // Sección Reflexiones Recientes
-$ref_badge = get_post_meta($inicio_page_id, 'ref_badge', true) ?: 'Contenido';
-$ref_titulo_1 = get_post_meta($inicio_page_id, 'ref_titulo_1', true) ?: 'Reflexiones';
-$ref_titulo_2 = get_post_meta($inicio_page_id, 'ref_titulo_2', true) ?: 'Recientes';
-$ref_subtitulo = get_post_meta($inicio_page_id, 'ref_subtitulo', true) ?: 'Inspiración y enseñanzas para transformar tu vida diaria';
+$ref_badge = 'Contenido';
+$ref_titulo_1 = 'Reflexiones';
+$ref_titulo_2 = 'Recientes';
+$ref_subtitulo = 'Inspiración y enseñanzas para transformar tu vida diaria';
 
 get_header();
 ?>
@@ -75,7 +55,7 @@ get_header();
         <?php endif; ?>
 
         <!-- Overlay -->
-        <div class="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-blue-900/90 to-indigo-900/85"></div>
+        <div class="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-blue-900/65 to-indigo-900/55"></div>
 
         <!-- Partículas decorativas -->
         <div class="absolute inset-0 pointer-events-none">
@@ -258,8 +238,8 @@ get_header();
         </div>
     </section>
 
-    <!-- Sección Grupos - Carrusel (desactivada temporalmente) -->
-    <?php if (false) :
+    <!-- Sección Grupos - Hero Slider -->
+    <?php
     $grupos = new WP_Query(array(
         'post_type' => 'cfc_grupo',
         'posts_per_page' => -1,
@@ -267,81 +247,122 @@ get_header();
         'orderby' => 'meta_value_num',
         'order' => 'ASC',
     ));
-    $color_map = array(
-        'purple' => array('from' => 'from-purple-500', 'to' => 'to-pink-500', 'text' => 'text-purple-700', 'bg' => 'bg-purple-50'),
-        'blue'   => array('from' => 'from-blue-500', 'to' => 'to-cyan-500', 'text' => 'text-blue-700', 'bg' => 'bg-blue-50'),
-        'green'  => array('from' => 'from-green-500', 'to' => 'to-teal-500', 'text' => 'text-green-700', 'bg' => 'bg-green-50'),
-        'orange' => array('from' => 'from-orange-500', 'to' => 'to-amber-500', 'text' => 'text-orange-700', 'bg' => 'bg-orange-50'),
-        'pink'   => array('from' => 'from-pink-500', 'to' => 'to-rose-500', 'text' => 'text-pink-700', 'bg' => 'bg-pink-50'),
-    );
     if ($grupos->have_posts()) :
+        $slides = array();
+        while ($grupos->have_posts()) : $grupos->the_post();
+            $slides[] = array(
+                'title'   => get_the_title(),
+                'desc'    => get_the_excerpt(),
+                'edad'    => get_post_meta(get_the_ID(), 'rango_edad', true),
+                'horario' => get_post_meta(get_the_ID(), 'horario', true),
+                'imagen'  => has_post_thumbnail() ? get_the_post_thumbnail_url(get_the_ID(), 'cfc-hero') : (get_post_meta(get_the_ID(), 'imagen_url', true) ?: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=1920&h=800&fit=crop'),
+                'btn_url' => get_post_meta(get_the_ID(), 'btn_url', true) ?: '#',
+                'btn_texto' => get_post_meta(get_the_ID(), 'btn_texto', true) ?: 'Únete',
+            );
+        endwhile;
+        wp_reset_postdata();
     ?>
-    <section id="conexion" class="py-20 bg-gray-100">
-        <div class="max-w-[1400px] mx-auto">
-            <!-- Header -->
-            <div class="px-6 md:px-12 mb-8" data-aos="fade-up">
-                <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
-                    Encuentra tu lugar. <span class="text-gray-400">Conéctate.</span>
-                </h2>
-            </div>
-
-            <!-- Carrusel con flecha -->
-            <div class="relative">
-                <div id="grupos-carousel" class="flex gap-5 overflow-x-auto pl-6 md:pl-12 pr-6 pb-8 snap-x snap-mandatory cursor-grab active:cursor-grabbing" style="scrollbar-width: none; -webkit-overflow-scrolling: touch;">
-                    <?php while ($grupos->have_posts()) : $grupos->the_post();
-                        $color = get_post_meta(get_the_ID(), 'color', true) ?: 'blue';
-                        $c = isset($color_map[$color]) ? $color_map[$color] : $color_map['blue'];
-                        $edad = get_post_meta(get_the_ID(), 'rango_edad', true);
-                        $horario = get_post_meta(get_the_ID(), 'horario_reunion', true) ?: get_post_meta(get_the_ID(), 'horario', true);
-                        $imagen = get_post_meta(get_the_ID(), 'imagen_url', true) ?: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=500&h=350&fit=crop';
-                        $btn_url = get_post_meta(get_the_ID(), 'btn_url', true) ?: '#';
-                        $btn_texto = get_post_meta(get_the_ID(), 'btn_texto', true) ?: 'Únete';
-                    ?>
-                    <div class="group flex-shrink-0 w-80 snap-start bg-white rounded-3xl p-6 flex flex-col transition-shadow duration-300 hover:shadow-xl" style="min-height: 420px;">
-                        <!-- Top -->
-                        <div class="mb-4">
-                            <?php if ($edad) : ?>
-                            <span class="text-xs font-semibold <?php echo esc_attr($c['text']); ?> uppercase tracking-wide"><?php echo esc_html($edad); ?></span>
+    <section id="conexion" class="relative overflow-hidden" data-aos="fade-up">
+        <!-- Slides -->
+        <div id="grupos-slider" class="relative h-[500px] md:h-[550px]">
+            <?php foreach ($slides as $i => $slide) : ?>
+            <div class="grupos-slide absolute inset-0 transition-opacity duration-700 <?php echo $i === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'; ?>">
+                <img src="<?php echo esc_url($slide['imagen']); ?>" alt="<?php echo esc_attr($slide['title']); ?>" class="absolute inset-0 w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-gray-900/70 to-gray-900/95"></div>
+                <div class="relative z-10 h-full flex items-center justify-end">
+                    <div class="w-full md:w-1/2 px-8 md:px-16 lg:px-20">
+                        <span class="inline-block px-3 py-1 bg-white/15 backdrop-blur-sm text-white text-xs font-bold uppercase tracking-wider rounded-full mb-4">
+                            Encuentra tu lugar
+                        </span>
+                        <h2 class="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-4">
+                            <?php echo esc_html($slide['title']); ?>
+                        </h2>
+                        <div class="flex items-center gap-3 text-white/80 text-sm mb-4">
+                            <?php if ($slide['edad']) : ?>
+                            <span><?php echo esc_html($slide['edad']); ?></span>
+                            <span>&middot;</span>
                             <?php endif; ?>
-                            <h3 class="text-2xl font-bold text-gray-900 mt-1"><?php the_title(); ?></h3>
+                            <?php if ($slide['horario']) : ?>
+                            <span><?php echo esc_html($slide['horario']); ?></span>
+                            <?php endif; ?>
                         </div>
-
-                        <!-- Imagen -->
-                        <div class="flex-1 flex items-center justify-center overflow-hidden rounded-2xl mb-4">
-                            <img src="<?php echo esc_url($imagen); ?>" alt="<?php the_title_attribute(); ?>" class="w-full h-full object-cover rounded-2xl transform group-hover:scale-105 transition-transform duration-700">
-                        </div>
-
-                        <!-- Bottom -->
-                        <div class="flex items-center justify-between mt-auto">
-                            <span class="text-sm text-gray-500"><?php echo $horario ? esc_html($horario) : ''; ?></span>
-                            <a href="<?php echo esc_url($btn_url); ?>" class="inline-flex items-center gap-1 bg-gradient-to-r <?php echo esc_attr($c['from'] . ' ' . $c['to']); ?> text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:shadow-lg transition-all">
-                                <?php echo esc_html($btn_texto); ?>
-                            </a>
-                        </div>
+                        <p class="text-white/80 text-lg mb-8 line-clamp-3"><?php echo esc_html($slide['desc']); ?></p>
+                        <?php if ($slide['btn_url'] && $slide['btn_url'] !== '#') : ?>
+                        <a href="<?php echo esc_url($slide['btn_url']); ?>" class="inline-flex items-center gap-2 bg-white text-gray-900 px-6 py-3 rounded-full font-semibold hover:bg-gray-100 hover:shadow-lg transition-all">
+                            <?php echo esc_html($slide['btn_texto']); ?>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                        </a>
+                        <?php endif; ?>
                     </div>
-                    <?php endwhile; wp_reset_postdata(); ?>
                 </div>
-
-                <!-- Flecha flotante derecha -->
-                <button onclick="document.getElementById('grupos-carousel').scrollBy({left:340,behavior:'smooth'})" class="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-white/80 backdrop-blur shadow-lg hover:shadow-xl items-center justify-center text-gray-700 hover:text-gray-900 transition-all z-10 border border-gray-200/50">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                </button>
             </div>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- Flechas: ocultas en mobile, visibles en desktop -->
+        <button id="grupos-prev" class="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/20 items-center justify-center text-white/70 hover:bg-black/40 hover:text-white transition-all">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+        <button id="grupos-next" class="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/20 items-center justify-center text-white/70 hover:bg-black/40 hover:text-white transition-all">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+
+        <!-- Dots centrados -->
+        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+            <?php foreach ($slides as $i => $slide) : ?>
+            <button class="grupos-dot w-2.5 h-2.5 rounded-full transition-all <?php echo $i === 0 ? 'bg-white w-8' : 'bg-white/50'; ?>" data-index="<?php echo $i; ?>"></button>
+            <?php endforeach; ?>
         </div>
     </section>
+
     <script>
-    (function(){
-        var el = document.getElementById('grupos-carousel');
-        if (!el) return;
-        var isDown = false, startX, scrollLeft;
-        el.addEventListener('mousedown', function(e) { isDown = true; startX = e.pageX - el.offsetLeft; scrollLeft = el.scrollLeft; });
-        el.addEventListener('mouseleave', function() { isDown = false; });
-        el.addEventListener('mouseup', function() { isDown = false; });
-        el.addEventListener('mousemove', function(e) { if (!isDown) return; e.preventDefault(); el.scrollLeft = scrollLeft - (e.pageX - el.offsetLeft - startX); });
+    (function() {
+        var slides = document.querySelectorAll('.grupos-slide');
+        var dots = document.querySelectorAll('.grupos-dot');
+        if (slides.length < 2) return;
+
+        var current = 0;
+        var total = slides.length;
+        var timer;
+
+        function goTo(index) {
+            slides[current].classList.remove('opacity-100', 'z-10');
+            slides[current].classList.add('opacity-0', 'z-0');
+            dots[current].classList.remove('bg-white', 'w-8');
+            dots[current].classList.add('bg-white/50');
+
+            current = (index + total) % total;
+
+            slides[current].classList.remove('opacity-0', 'z-0');
+            slides[current].classList.add('opacity-100', 'z-10');
+            dots[current].classList.remove('bg-white/50');
+            dots[current].classList.add('bg-white', 'w-8');
+        }
+
+        function autoPlay() { timer = setInterval(function() { goTo(current + 1); }, 5000); }
+        function resetTimer() { clearInterval(timer); autoPlay(); }
+
+        document.getElementById('grupos-next').addEventListener('click', function() { goTo(current + 1); resetTimer(); });
+        document.getElementById('grupos-prev').addEventListener('click', function() { goTo(current - 1); resetTimer(); });
+        dots.forEach(function(dot) {
+            dot.addEventListener('click', function() { goTo(parseInt(this.dataset.index)); resetTimer(); });
+        });
+
+        autoPlay();
     })();
     </script>
-    <?php endif; // fin if have_posts ?>
-    <?php endif; // fin sección grupos desactivada ?>
+    <?php else : ?>
+    <!-- Grupos: Próximamente -->
+    <section id="conexion" class="py-20 bg-gray-50" data-aos="fade-up">
+        <div class="container mx-auto px-6 text-center">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl mb-6">
+                <span class="text-4xl">&#129309;</span>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-3">Grupos de Discipulado</h3>
+            <p class="text-gray-500 max-w-md mx-auto">Proximamente tendremos información sobre nuestros grupos. Vuelve pronto.</p>
+        </div>
+    </section>
+    <?php endif; ?>
 
     <!-- Sección Reflexiones Recientes -->
     <section id="reflexiones" class="py-20 bg-gradient-to-br from-white via-gray-50 to-blue-50/30">
@@ -367,7 +388,7 @@ get_header();
                 <div class="grid md:grid-cols-3 gap-8">
                     <?php
                     $reflexiones = new WP_Query(array(
-                        'post_type' => 'cfc_reflexion',
+                        'post_type' => 'post',
                         'posts_per_page' => 3,
                         'orderby' => 'date',
                         'order' => 'DESC',
@@ -396,7 +417,7 @@ get_header();
                             </div>
 
                             <!-- Categoría -->
-                            <?php $cats = get_the_terms(get_the_ID(), 'categoria_reflexion'); ?>
+                            <?php $cats = get_the_terms(get_the_ID(), 'category'); ?>
                             <?php if ($cats && !is_wp_error($cats)) : ?>
                             <div class="absolute bottom-4 left-4 bg-primary/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-bold">
                                 <?php echo esc_html($cats[0]->name); ?>
@@ -439,40 +460,22 @@ get_header();
                         endwhile;
                         wp_reset_postdata();
                     else :
-                        // Default cards if no reflexiones exist
-                        $default_reflexiones = array(
-                            array('title' => 'La Fe en Acción', 'type' => 'Video', 'badge' => 'EN VIVO'),
-                            array('title' => 'El Poder del Perdón', 'type' => 'Podcast', 'badge' => '30 min'),
-                            array('title' => 'Familias Fuertes', 'type' => 'Artículo', 'badge' => '5 min lectura'),
-                        );
-                        foreach ($default_reflexiones as $index => $ref) :
                     ?>
-                    <article class="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 border border-gray-100" data-aos="fade-up" data-aos-delay="<?php echo $index * 100; ?>">
-                        <div class="relative h-48 bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                            <span class="text-6xl opacity-50">&#128214;</span>
-                            <div class="absolute top-4 right-4 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                                <?php echo esc_html($ref['badge']); ?>
-                            </div>
+                    <div class="md:col-span-3 text-center py-16" data-aos="fade-up">
+                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl mb-6">
+                            <span class="text-4xl">&#128214;</span>
                         </div>
-                        <div class="p-6">
-                            <div class="flex items-center gap-3 text-xs text-gray-500 mb-3">
-                                <span><?php echo esc_html($ref['type']); ?></span>
-                                <span>•</span>
-                                <span>Nuevo</span>
-                            </div>
-                            <h3 class="text-xl font-bold text-gray-900 mb-3"><?php echo esc_html($ref['title']); ?></h3>
-                            <p class="text-gray-600 text-sm mb-4">Contenido inspirador para tu crecimiento espiritual.</p>
-                        </div>
-                    </article>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-3">Proximamente</h3>
+                        <p class="text-gray-500 max-w-md mx-auto">Estamos preparando contenido inspirador para alimentar tu vida espiritual. Vuelve pronto.</p>
+                    </div>
                     <?php
-                        endforeach;
                     endif;
                     ?>
                 </div>
 
                 <!-- Botón ver todas -->
                 <div class="text-center mt-12" data-aos="fade-up" data-aos-delay="300">
-                    <a href="<?php echo esc_url(get_post_type_archive_link('cfc_reflexion')); ?>" class="inline-flex items-center gap-3 bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-full font-bold hover:shadow-xl transition-all duration-300 group">
+                    <a href="<?php echo esc_url(get_permalink(get_option('page_for_posts'))); ?>" class="inline-flex items-center gap-3 bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-full font-bold hover:shadow-xl transition-all duration-300 group">
                         Ver todas las reflexiones
                         <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>

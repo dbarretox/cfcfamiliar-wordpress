@@ -35,7 +35,7 @@ get_header();
                 <?php
                 $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
                 $reflexiones = new WP_Query(array(
-                    'post_type' => 'cfc_reflexion',
+                    'post_type' => 'post',
                     'posts_per_page' => 12,
                     'paged' => $paged,
                     'orderby' => 'date',
@@ -50,7 +50,7 @@ get_header();
                     <?php while ($reflexiones->have_posts()) : $reflexiones->the_post();
                         $duracion = cfc_get_field('duracion', get_the_ID(), '');
                         $video_url = cfc_get_field('video_url', get_the_ID(), '');
-                        $cats = get_the_terms(get_the_ID(), 'categoria_reflexion');
+                        $cats = get_the_terms(get_the_ID(), 'category');
                         $cat_name = ($cats && !is_wp_error($cats)) ? $cats[0]->name : '';
 
                         // Imagen

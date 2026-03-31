@@ -28,8 +28,8 @@ $post_type = get_post_type();
             <?php
             // Get category/taxonomy badge
             $terms = false;
-            if ($post_type === 'cfc_reflexion') {
-                $terms = get_the_terms(get_the_ID(), 'categoria_reflexion');
+            if ($post_type === 'post') {
+                $terms = get_the_terms(get_the_ID(), 'category');
             } elseif ($post_type === 'cfc_evento') {
                 $terms = get_the_terms(get_the_ID(), 'tipo_evento');
             } elseif ($post_type === 'cfc_ministerio') {
@@ -69,7 +69,7 @@ $post_type = get_post_type();
                 <?php
                 // Video embed for reflexiones
                 $video_url = cfc_get_field('video_url', get_the_ID(), '');
-                if ($video_url && $post_type === 'cfc_reflexion') :
+                if ($video_url && $post_type === 'post') :
                     // Extract YouTube video ID
                     preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $video_url, $matches);
                     $video_id = isset($matches[1]) ? $matches[1] : '';
@@ -89,7 +89,7 @@ $post_type = get_post_type();
                 <?php
                 // Podcast embed for reflexiones
                 $podcast_url = cfc_get_field('podcast_url', get_the_ID(), '');
-                if ($podcast_url && $post_type === 'cfc_reflexion') :
+                if ($podcast_url && $post_type === 'post') :
                     // Detect Spotify URL and extract episode ID
                     $is_spotify = strpos($podcast_url, 'spotify.com') !== false;
                     $spotify_id = '';
@@ -137,7 +137,7 @@ $post_type = get_post_type();
                 <?php
                 // Downloadable file (PDF) for reflexiones
                 $archivo_url = cfc_get_field('archivo_url', get_the_ID(), '');
-                if ($archivo_url && $post_type === 'cfc_reflexion') :
+                if ($archivo_url && $post_type === 'post') :
                 ?>
                 <div class="mb-12 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
                     <div class="flex items-center justify-between flex-wrap gap-4">
@@ -270,9 +270,9 @@ $post_type = get_post_type();
 
     <?php
     // Related posts for reflexiones
-    if ($post_type === 'cfc_reflexion') :
+    if ($post_type === 'post') :
         $related = new WP_Query(array(
-            'post_type' => 'cfc_reflexion',
+            'post_type' => 'post',
             'posts_per_page' => 3,
             'post__not_in' => array(get_the_ID()),
             'orderby' => 'rand',
@@ -297,7 +297,7 @@ $post_type = get_post_type();
                             <?php endif; ?>
                             <div class="p-6">
                                 <?php
-                                $cat = get_the_terms(get_the_ID(), 'categoria_reflexion');
+                                $cat = get_the_terms(get_the_ID(), 'category');
                                 if ($cat && !is_wp_error($cat)) :
                                 ?>
                                 <span class="text-primary text-sm font-semibold"><?php echo esc_html($cat[0]->name); ?></span>
@@ -312,7 +312,7 @@ $post_type = get_post_type();
                     <?php endwhile; ?>
                 </div>
                 <div class="text-center mt-10">
-                    <a href="<?php echo esc_url(get_post_type_archive_link('cfc_reflexion')); ?>" class="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-secondary text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all">
+                    <a href="<?php echo esc_url(get_permalink(get_option('page_for_posts'))); ?>" class="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-secondary text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all">
                         Ver Todas las Reflexiones
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
@@ -330,7 +330,7 @@ $post_type = get_post_type();
 
 <?php
 // Floating Sticky Audio Bar for Reflexiones with Podcast
-if ($post_type === 'cfc_reflexion') :
+if ($post_type === 'post') :
     $sticky_podcast_url = cfc_get_field('podcast_url', get_queried_object_id(), '');
     $sticky_spotify_id = '';
     if ($sticky_podcast_url && strpos($sticky_podcast_url, 'spotify.com') !== false) {

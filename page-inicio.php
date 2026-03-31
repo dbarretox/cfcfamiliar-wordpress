@@ -1,7 +1,6 @@
 <?php
 /**
- * Template Name: Inicio
- * Homepage Template with editable fields
+ * Inicio page template (legacy, front-page.php is used instead)
  *
  * @package CFC_Familiar
  */
@@ -352,7 +351,7 @@ $default_video = get_template_directory_uri() . '/assets/videos/cfcintrohomepage
                 <div class="grid md:grid-cols-3 gap-8">
                     <?php
                     $reflexiones = new WP_Query(array(
-                        'post_type' => 'cfc_reflexion',
+                        'post_type' => 'post',
                         'posts_per_page' => 3,
                         'orderby' => 'date',
                         'order' => 'DESC',
@@ -381,7 +380,7 @@ $default_video = get_template_directory_uri() . '/assets/videos/cfcintrohomepage
                             </div>
 
                             <!-- Categoría -->
-                            <?php $cats = get_the_terms(get_the_ID(), 'categoria_reflexion'); ?>
+                            <?php $cats = get_the_terms(get_the_ID(), 'category'); ?>
                             <?php if ($cats && !is_wp_error($cats)) : ?>
                             <div class="absolute bottom-4 left-4 bg-primary/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-bold">
                                 <?php echo esc_html($cats[0]->name); ?>
@@ -457,7 +456,7 @@ $default_video = get_template_directory_uri() . '/assets/videos/cfcintrohomepage
 
                 <!-- Botón ver todas -->
                 <div class="text-center mt-12" data-aos="fade-up" data-aos-delay="300">
-                    <a href="<?php echo esc_url(get_post_type_archive_link('cfc_reflexion')); ?>" class="inline-flex items-center gap-3 bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-full font-bold hover:shadow-xl transition-all duration-300 group">
+                    <a href="<?php echo esc_url(get_permalink(get_option('page_for_posts'))); ?>" class="inline-flex items-center gap-3 bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-full font-bold hover:shadow-xl transition-all duration-300 group">
                         Ver todas las reflexiones
                         <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>

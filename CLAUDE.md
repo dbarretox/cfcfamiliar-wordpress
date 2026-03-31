@@ -48,16 +48,16 @@ npm run dev      # watch mode (desarrollo)
 - `page-quienes-somos.php` — Misión, visión, equipo
 - `page-ministerios.php` → include `archive-cfc_ministerio.php`
 - `page-eventos.php` → include `archive-cfc_evento.php`
-- `page-reflexiones.php` → include `archive-cfc_reflexion.php`
+- `page-reflexiones.php` → include `archive-reflexiones.php`
 - `page-visitanos.php` — Horarios, ubicación
 - `page-dar.php` — Donaciones/ofrendas
 
 ### Custom Post Types
 - `cfc_evento` — Eventos de la iglesia
 - `cfc_ministerio` — Ministerios
-- `cfc_reflexion` — Reflexiones/blog (se va a migrar a Posts nativos)
 - `cfc_equipo` — Miembros del equipo pastoral
 - `cfc_grupo` — Grupos (adolescentes, jóvenes, parejas, etc.)
+- **Reflexiones** — Usa Posts nativos de WordPress (renombrado en admin). Categorías con meta: icono, color, gradiente
 
 ### Archivos clave
 - `functions.php` — Todo: CPTs, metaboxes, admin UI, helpers, menu walkers
@@ -77,7 +77,7 @@ npm run dev      # watch mode (desarrollo)
 - Los defaults están en `cfc_defaults()` en functions.php
 
 ## Admin UI
-- Gutenberg desactivado para páginas con template CFC y CPTs
+- Gutenberg desactivado para páginas con template CFC, CPTs, y Posts (Reflexiones)
 - Páginas con template CFC: editor oculto, solo metaboxes del tema
 - Screen Options, permalink, Page Attributes ocultos en páginas con template
 - Los metaboxes se muestran/ocultan con JS según el template seleccionado
@@ -89,12 +89,10 @@ npm run dev      # watch mode (desarrollo)
 - Tailwind v3 (NO v4) — v4 rompe las clases existentes
 - El deploy.sh usa la IP directa `104.244.154.76` porque `ftp.serverdbarreto.com` no resuelve DNS
 - Sección "Encuentra Tu Lugar" (grupos carousel) está desactivada temporalmente con `if (false)`
-- Reflexiones se van a migrar de CPT a Posts nativos de WordPress
+- Reflexiones usa Posts nativos. En admin aparece como "Reflexiones" bajo menú CFC Familiar
 - El cliente ya tiene Gravity Forms — el tema lo protege con CSS `all: revert` en `.gform_wrapper`
 
 ## Pendientes
-- Migrar Reflexiones de CPT a Posts nativos
-- Renombrar "Posts" a "Reflexiones" en el admin
 - Rediseñar sección de Grupos (carousel estilo Apple desactivado)
 - Implementar dashboard custom (cards con links a CPTs)
 - White-label del admin (ocultar menús innecesarios de WordPress)

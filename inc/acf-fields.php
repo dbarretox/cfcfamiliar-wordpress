@@ -57,7 +57,7 @@ if (!defined('ABSPATH')) {
  * - evento_destacado (True/False) - ¿Es evento destacado?
  *
  * ----------------------------------------------------------------------------
- * 3. CAMPOS PARA REFLEXIONES (Post Type: cfc_reflexion)
+ * 3. CAMPOS PARA REFLEXIONES (Post Type: post)
  * ----------------------------------------------------------------------------
  *
  * Grupo: "Detalles de la Reflexión"

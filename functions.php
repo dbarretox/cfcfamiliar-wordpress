@@ -119,6 +119,99 @@ function cfc_enqueue_assets() {
 add_action('wp_enqueue_scripts', 'cfc_enqueue_assets');
 
 /**
+ * Favicon
+ */
+function cfc_favicon() {
+    echo '<link rel="icon" type="image/svg+xml" href="' . CFC_THEME_URI . '/assets/images/favicon.svg">';
+    echo '<link rel="icon" type="image/png" href="' . CFC_THEME_URI . '/assets/images/favicon.png">';
+}
+add_action('wp_head', 'cfc_favicon');
+
+/**
+ * Admin bar: contextual edit links on frontend
+ */
+function cfc_admin_bar_edit_links($wp_admin_bar) {
+    if (is_admin() || !is_admin_bar_showing()) return;
+
+    $url = $_SERVER['REQUEST_URI'];
+
+    $links = array();
+    if (strpos($url, 'quienes-somos') !== false) {
+        $links[] = array('id' => 'cfc-edit-equipo', 'title' => 'Editar Equipo', 'href' => admin_url('edit.php?post_type=cfc_equipo'));
+    }
+    if (strpos($url, 'eventos') !== false) {
+        $links[] = array('id' => 'cfc-edit-eventos', 'title' => 'Editar Eventos', 'href' => admin_url('edit.php?post_type=cfc_evento'));
+    }
+    if (strpos($url, 'ministerios') !== false) {
+        $links[] = array('id' => 'cfc-edit-ministerios', 'title' => 'Editar Ministerios', 'href' => admin_url('edit.php?post_type=cfc_ministerio'));
+    }
+
+    foreach ($links as $link) {
+        $wp_admin_bar->add_node(array(
+            'id' => $link['id'],
+            'title' => $link['title'],
+            'href' => $link['href'],
+            'parent' => 'edit',
+        ));
+    }
+}
+add_action('admin_bar_menu', 'cfc_admin_bar_edit_links', 100);
+
+/**
+ * Back to list button on CPT edit screens
+ */
+function cfc_back_to_list_button() {
+    $screen = get_current_screen();
+    if (!$screen || $screen->base !== 'post') return;
+
+    $links = array(
+        'cfc_equipo' => array('url' => 'edit.php?post_type=cfc_equipo', 'label' => 'Ver Todos los Miembros'),
+        'cfc_evento' => array('url' => 'edit.php?post_type=cfc_evento', 'label' => 'Ver Todos los Eventos'),
+        'cfc_ministerio' => array('url' => 'edit.php?post_type=cfc_ministerio', 'label' => 'Ver Todos los Ministerios'),
+        'cfc_grupo' => array('url' => 'edit.php?post_type=cfc_grupo', 'label' => 'Ver Todos los Grupos'),
+    );
+
+    if (!isset($links[$screen->post_type])) return;
+    $link = $links[$screen->post_type];
+
+    echo '<script>jQuery(function($){
+        $(".wrap .page-title-action").after(\'<a href="' . admin_url($link['url']) . '" class="page-title-action">&larr; ' . $link['label'] . '</a>\');
+    });</script>';
+}
+add_action('admin_footer', 'cfc_back_to_list_button');
+
+/**
+ * Custom update messages with "View page" link for CPTs
+ */
+function cfc_post_updated_messages($messages) {
+    $links = array(
+        'cfc_equipo'      => array('name' => 'Miembro', 'url' => home_url('/quienes-somos/')),
+        'cfc_evento'      => array('name' => 'Evento', 'url' => home_url('/eventos/')),
+        'cfc_ministerio'  => array('name' => 'Ministerio', 'url' => home_url('/ministerios/')),
+        'cfc_grupo'       => array('name' => 'Grupo', 'url' => home_url('/')),
+    );
+
+    foreach ($links as $pt => $data) {
+        $view = ' <a href="' . esc_url($data['url']) . '">Ver página</a>';
+        $messages[$pt] = array(
+            0  => '',
+            1  => $data['name'] . ' actualizado.' . $view,
+            2  => 'Campo actualizado.',
+            3  => 'Campo eliminado.',
+            4  => $data['name'] . ' actualizado.' . $view,
+            5  => '',
+            6  => $data['name'] . ' publicado.' . $view,
+            7  => $data['name'] . ' guardado.',
+            8  => $data['name'] . ' enviado.' . $view,
+            9  => $data['name'] . ' programado.' . $view,
+            10 => 'Borrador actualizado.' . $view,
+        );
+    }
+    return $messages;
+}
+add_filter('post_updated_messages', 'cfc_post_updated_messages');
+
+/**
  * Register Custom Post Types
  */
 function cfc_register_post_types() {
@@ -140,7 +233,7 @@ function cfc_register_post_types() {
         'public'              => true,
         'has_archive'         => true,
         'rewrite'             => array('slug' => 'eventos'),
-        'menu_icon'           => 'dashicons-calendar-alt',
+        'show_in_menu'        => 'cfc-familiar',
         'supports'            => array('title', 'editor', 'thumbnail', 'excerpt'),
         'show_in_rest'        => true,
     ));
@@ -163,7 +256,7 @@ function cfc_register_post_types() {
         'public'              => true,
         'has_archive'         => true,
         'rewrite'             => array('slug' => 'ministerios'),
-        'menu_icon'           => 'dashicons-groups',
+        'show_in_menu'        => 'cfc-familiar',
         'supports'            => array('title', 'editor', 'thumbnail', 'excerpt'),
         'show_in_rest'        => true,
     ));
@@ -185,10 +278,9 @@ function cfc_register_post_types() {
         ),
         'public'              => false,
         'show_ui'             => true,
-        'show_in_menu'        => true,
+        'show_in_menu'        => 'cfc-familiar',
         'has_archive'         => false,
         'rewrite'             => false,
-        'menu_icon'           => 'dashicons-groups',
         'supports'            => array('title', 'thumbnail'),
         'show_in_rest'        => true,
     ));
@@ -211,36 +303,65 @@ function cfc_register_post_types() {
         'public'              => true,
         'has_archive'         => false,
         'rewrite'             => false,
-        'menu_icon'           => 'dashicons-groups',
-        'menu_position'       => 28,
+        'show_in_menu'        => 'cfc-familiar',
         'supports'            => array('title', 'thumbnail', 'excerpt'),
         'show_in_rest'        => true,
     ));
 
-    // Reflexiones
-    register_post_type('cfc_reflexion', array(
-        'labels' => array(
-            'name'               => __('Reflexiones', 'cfc-familiar'),
-            'singular_name'      => __('Reflexión', 'cfc-familiar'),
-            'add_new'            => __('Agregar Reflexión', 'cfc-familiar'),
-            'add_new_item'       => __('Agregar Nueva Reflexión', 'cfc-familiar'),
-            'edit_item'          => __('Editar Reflexión', 'cfc-familiar'),
-            'new_item'           => __('Nueva Reflexión', 'cfc-familiar'),
-            'view_item'          => __('Ver Reflexión', 'cfc-familiar'),
-            'search_items'       => __('Buscar Reflexiones', 'cfc-familiar'),
-            'not_found'          => __('No se encontraron reflexiones', 'cfc-familiar'),
-            'not_found_in_trash' => __('No hay reflexiones en la papelera', 'cfc-familiar'),
-            'menu_name'          => __('Reflexiones', 'cfc-familiar'),
-        ),
-        'public'              => true,
-        'has_archive'         => true,
-        'rewrite'             => array('slug' => 'reflexiones'),
-        'menu_icon'           => 'dashicons-format-quote',
-        'supports'            => array('title', 'editor', 'thumbnail', 'excerpt', 'author'),
-        'show_in_rest'        => true,
-    ));
 }
 add_action('init', 'cfc_register_post_types');
+
+/**
+ * Register virtual pages (no WordPress Pages needed)
+ */
+function cfc_virtual_pages_rewrite() {
+    add_rewrite_rule('^quienes-somos/?$', 'index.php?cfc_virtual_page=quienes-somos', 'top');
+    add_rewrite_rule('^visitanos/?$', 'index.php?cfc_virtual_page=visitanos', 'top');
+    add_rewrite_rule('^dar/?$', 'index.php?cfc_virtual_page=dar', 'top');
+}
+add_action('init', 'cfc_virtual_pages_rewrite');
+
+function cfc_virtual_pages_query_var($vars) {
+    $vars[] = 'cfc_virtual_page';
+    return $vars;
+}
+add_filter('query_vars', 'cfc_virtual_pages_query_var');
+
+function cfc_virtual_pages_template($template) {
+    $virtual = get_query_var('cfc_virtual_page');
+    if (!$virtual) return $template;
+
+    $templates = array(
+        'quienes-somos' => 'page-quienes-somos.php',
+        'visitanos'     => 'page-visitanos.php',
+        'dar'           => 'page-dar.php',
+    );
+
+    if (isset($templates[$virtual])) {
+        $file = get_template_directory() . '/' . $templates[$virtual];
+        if (file_exists($file)) {
+            // Set up proper response
+            global $wp_query;
+            $wp_query->is_404 = false;
+            $wp_query->is_page = true;
+            status_header(200);
+            return $file;
+        }
+    }
+
+    return $template;
+}
+add_filter('template_include', 'cfc_virtual_pages_template');
+
+/**
+ * Flush rewrite rules on theme activation
+ */
+function cfc_flush_rewrites() {
+    cfc_register_post_types();
+    cfc_virtual_pages_rewrite();
+    flush_rewrite_rules();
+}
+add_action('after_switch_theme', 'cfc_flush_rewrites');
 
 /**
  * Register Taxonomies
@@ -284,24 +405,6 @@ function cfc_register_taxonomies() {
         'rewrite'           => array('slug' => 'tipo-ministerio'),
     ));
 
-    // Categoría de Reflexión
-    register_taxonomy('categoria_reflexion', 'cfc_reflexion', array(
-        'labels' => array(
-            'name'              => __('Categorías', 'cfc-familiar'),
-            'singular_name'     => __('Categoría', 'cfc-familiar'),
-            'search_items'      => __('Buscar Categorías', 'cfc-familiar'),
-            'all_items'         => __('Todas las Categorías', 'cfc-familiar'),
-            'edit_item'         => __('Editar Categoría', 'cfc-familiar'),
-            'update_item'       => __('Actualizar Categoría', 'cfc-familiar'),
-            'add_new_item'      => __('Agregar Nueva Categoría', 'cfc-familiar'),
-            'new_item_name'     => __('Nombre de la Nueva Categoría', 'cfc-familiar'),
-            'menu_name'         => __('Categorías', 'cfc-familiar'),
-        ),
-        'hierarchical'      => true,
-        'show_admin_column' => true,
-        'show_in_rest'      => true,
-        'rewrite'           => array('slug' => 'categoria-reflexion'),
-    ));
 }
 add_action('init', 'cfc_register_taxonomies');
 
@@ -389,7 +492,7 @@ function cfc_categoria_reflexion_add_fields() {
     </div>
     <?php
 }
-add_action('categoria_reflexion_add_form_fields', 'cfc_categoria_reflexion_add_fields');
+add_action('category_add_form_fields', 'cfc_categoria_reflexion_add_fields');
 
 // Add fields when editing category
 function cfc_categoria_reflexion_edit_fields($term) {
@@ -436,7 +539,7 @@ function cfc_categoria_reflexion_edit_fields($term) {
     </tr>
     <?php
 }
-add_action('categoria_reflexion_edit_form_fields', 'cfc_categoria_reflexion_edit_fields');
+add_action('category_edit_form_fields', 'cfc_categoria_reflexion_edit_fields');
 
 // Save category meta
 function cfc_save_categoria_reflexion_meta($term_id) {
@@ -450,28 +553,9 @@ function cfc_save_categoria_reflexion_meta($term_id) {
         update_term_meta($term_id, 'categoria_gradiente', sanitize_text_field($_POST['categoria_gradiente']));
     }
 }
-add_action('created_categoria_reflexion', 'cfc_save_categoria_reflexion_meta');
-add_action('edited_categoria_reflexion', 'cfc_save_categoria_reflexion_meta');
+add_action('created_category', 'cfc_save_categoria_reflexion_meta');
+add_action('edited_category', 'cfc_save_categoria_reflexion_meta');
 
-/**
- * Show notice on Posts page (not used in this theme)
- */
-function cfc_posts_not_used_notice() {
-    $screen = get_current_screen();
-    if ($screen && ($screen->id === 'edit-post' || $screen->post_type === 'post')) {
-        ?>
-        <div class="notice notice-warning" style="border-left-color: #f59e0b; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);">
-            <p style="font-size: 14px;">
-                <strong style="color: #b45309;">Este tema no usa Entradas (Posts).</strong>
-                Usa los Custom Post Types: <a href="<?php echo admin_url('edit.php?post_type=cfc_reflexion'); ?>">Reflexiones</a>,
-                <a href="<?php echo admin_url('edit.php?post_type=cfc_evento'); ?>">Eventos</a>,
-                <a href="<?php echo admin_url('edit.php?post_type=cfc_ministerio'); ?>">Ministerios</a>.
-            </p>
-        </div>
-        <?php
-    }
-}
-add_action('admin_notices', 'cfc_posts_not_used_notice');
 
 /**
  * ACF Options Pages (if ACF is installed)
@@ -615,6 +699,49 @@ function cfc_require_page_setup($required_fields = array(), $page_name = 'Págin
 }
 
 /**
+ * Render Lucide icon SVG by name
+ */
+function cfc_icon_svg($name, $class = 'w-6 h-6') {
+    $icons = array(
+        'music' => '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+        'heart' => '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+        'users' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+        'mic' => '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
+        'book-open' => '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+        'flame' => '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+        'baby' => '<path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/>',
+        'shield' => '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+        'biceps' => '<path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="m16 16 3.5 3.5"/><path d="m19 19 2 2"/><path d="M14.5 6.5 18 3l3 3-3.5 3.5"/>',
+        'heart-handshake' => '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.96 2.66"/><path d="m18 15-2-2"/><path d="m15 18-2-2"/>',
+        'flower2' => '<path d="M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1"/><circle cx="12" cy="8" r="2"/><path d="M12 10v12"/><path d="M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z"/><path d="M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z"/>',
+        'monitor' => '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>',
+        'rocket' => '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>',
+        'flower' => '<circle cx="12" cy="12" r="3"/><path d="M12 2a4 4 0 0 1 0 8 4 4 0 0 1 0-8z"/><path d="M12 16a4 4 0 0 1 0 8 4 4 0 0 1 0-8z"/><path d="M2 12a4 4 0 0 1 8 0 4 4 0 0 1-8 0z"/><path d="M16 12a4 4 0 0 1 8 0 4 4 0 0 1-8 0z"/>',
+        'dumbbell' => '<path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>',
+        'home' => '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+        'star' => '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+        'hand-helping' => '<path d="M11 12h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 14"/><path d="m7 18 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9"/><path d="m2 13 6 6"/>',
+        'cross' => '<path d="M11 2a1 1 0 0 1 2 0v7h7a1 1 0 0 1 0 2h-7v11a1 1 0 0 1-2 0V11H4a1 1 0 0 1 0-2h7z"/>',
+        'church' => '<path d="m18 7 4 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9l4-2"/><path d="M14 22v-4a2 2 0 0 0-4 0v4"/><path d="M18 22V5l-6-3-6 3v17"/><path d="M12 7v5"/><path d="M10 9h4"/>',
+        'hands-praying' => '<path d="M7 20.981a4.828 4.828 0 0 1-3.535-1.465l-.707-.707a1 1 0 0 1 0-1.414l7.778-7.778a3 3 0 0 1 1.414-.793"/><path d="M17 20.981a4.828 4.828 0 0 0 3.535-1.465l.707-.707a1 1 0 0 0 0-1.414l-7.778-7.778a3 3 0 0 0-1.414-.793"/><path d="M12 2v7"/>',
+        'guitar' => '<path d="m11.9 12.1 4.514-4.514"/><path d="M20.1 2.3a1 1 0 0 1 1.4 1.4l-1.1 1.1 2.3 2.3-3.5 3.5-2.3-2.3-1.1 1.1a1 1 0 0 1-1.4-1.4z"/><path d="m6 16 2 2"/><path d="M12.4 17.6a8 8 0 0 1-9-9l1-2.3a1 1 0 0 1 .9-.5h.5a1 1 0 0 1 .9.6l.9 1.7a1 1 0 0 1-.2 1.2L5 11.5a6 6 0 0 0 7.5 7.5l1.8-2.4a1 1 0 0 1 1.2-.2l1.7.9a1 1 0 0 1 .6.9v.5a1 1 0 0 1-.5.9z"/>',
+        'globe' => '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+        'graduation-cap' => '<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
+        'calendar' => '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+        'megaphone' => '<path d="m3 11 18-5v12L3 13v-2z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+        'coffee' => '<path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v3a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a2 2 0 1 1 0 4h-1"/><path d="M6 2v2"/><path d="M6 18h8"/>',
+        'sun' => '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+        'crown' => '<path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L20.266 6.5a.5.5 0 0 1 .734.545l-2.494 13.178A2 2 0 0 1 16.542 22H7.458a2 2 0 0 1-1.964-1.777L3 7.045a.5.5 0 0 1 .734-.545l3.36 2.664a1 1 0 0 0 1.516-.294z"/>',
+        'gift' => '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>',
+        'camera' => '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+        'wifi' => '<path d="M12 20h.01"/><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.859a10 10 0 0 1 14 0"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/>',
+        'wrench' => '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+    );
+    if (!isset($icons[$name])) return '';
+    return '<svg class="' . esc_attr($class) . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' . $icons[$name] . '</svg>';
+}
+
+/**
  * Get reflexion image URL with fallback logic
  * Priority: 1) Featured image, 2) imagen_url meta, 3) Random from array
  */
@@ -737,7 +864,7 @@ function cfc_get_changelog() {
             'date' => '2026-01-07',
             'changes' => array(
                 'Versión inicial del tema',
-                'Custom Post Types: Eventos, Ministerios, Reflexiones',
+                'Custom Post Types: Eventos, Ministerios + Reflexiones (Posts nativos)',
                 'Integración con Spotify y YouTube',
                 'Sistema de actualizaciones desde GitHub',
                 'Panel de opciones personalizado',
@@ -750,156 +877,12 @@ function cfc_get_changelog() {
  * Disable Gutenberg for pages with custom templates and CPTs
  */
 function cfc_disable_gutenberg($use_block_editor, $post_type) {
-    if (in_array($post_type, array('page', 'cfc_evento', 'cfc_ministerio', 'cfc_reflexion', 'cfc_equipo'))) {
+    if (in_array($post_type, array('post', 'page', 'cfc_evento', 'cfc_ministerio', 'cfc_equipo'))) {
         return false;
     }
     return $use_block_editor;
 }
 add_filter('use_block_editor_for_post_type', 'cfc_disable_gutenberg', 10, 2);
-
-/**
- * Hide the content editor for pages using CFC templates
- */
-function cfc_hide_editor_for_templates() {
-    global $pagenow;
-    if ($pagenow !== 'post.php' && $pagenow !== 'post-new.php') return;
-    if (get_post_type() !== 'page') return;
-
-    $post_id = isset($_GET['post']) ? $_GET['post'] : (isset($_POST['post_ID']) ? $_POST['post_ID'] : 0);
-    if (!$post_id) return;
-
-    $template = get_post_meta($post_id, '_wp_page_template', true);
-    $cfc_templates = array(
-        'page-inicio.php',
-        'page-quienes-somos.php',
-        'page-ministerios.php',
-        'page-eventos.php',
-        'page-reflexiones.php',
-        'page-visitanos.php',
-        'page-dar.php',
-    );
-
-    if (in_array($template, $cfc_templates)) {
-        remove_post_type_support('page', 'editor');
-        remove_post_type_support('page', 'comments');
-        remove_post_type_support('page', 'author');
-        remove_post_type_support('page', 'revisions');
-    }
-}
-add_action('admin_init', 'cfc_hide_editor_for_templates');
-
-/**
- * Remove default metaboxes from CFC template pages, keep Page Attributes
- */
-function cfc_remove_default_metaboxes() {
-    if (get_post_type() !== 'page') return;
-
-    $post_id = isset($_GET['post']) ? $_GET['post'] : 0;
-    if (!$post_id) return;
-
-    $template = get_post_meta($post_id, '_wp_page_template', true);
-    $cfc_templates = array(
-        'page-inicio.php',
-        'page-quienes-somos.php',
-        'page-ministerios.php',
-        'page-eventos.php',
-        'page-reflexiones.php',
-        'page-visitanos.php',
-        'page-dar.php',
-    );
-
-    if (in_array($template, $cfc_templates)) {
-        remove_meta_box('commentstatusdiv', 'page', 'normal');
-        remove_meta_box('commentsdiv', 'page', 'normal');
-        remove_meta_box('slugdiv', 'page', 'normal');
-        remove_meta_box('authordiv', 'page', 'normal');
-        remove_meta_box('revisionsdiv', 'page', 'normal');
-        remove_meta_box('postcustom', 'page', 'normal');
-        remove_meta_box('trackbacksdiv', 'page', 'normal');
-    }
-}
-add_action('add_meta_boxes', 'cfc_remove_default_metaboxes', 99);
-
-/**
- * Hide classic editor with CSS for CFC template pages
- */
-function cfc_hide_editor_css() {
-    global $pagenow;
-    if ($pagenow !== 'post.php') return;
-    if (get_post_type() !== 'page') return;
-
-    $post_id = isset($_GET['post']) ? $_GET['post'] : 0;
-    if (!$post_id) return;
-
-    $template = get_post_meta($post_id, '_wp_page_template', true);
-    $cfc_templates = array(
-        'page-inicio.php',
-        'page-quienes-somos.php',
-        'page-ministerios.php',
-        'page-eventos.php',
-        'page-reflexiones.php',
-        'page-visitanos.php',
-        'page-dar.php',
-    );
-
-    if (in_array($template, $cfc_templates)) {
-        echo '<style>
-            /* Ocultar editor */
-            #postdivrich, .wp-editor-wrap, .wp-editor-container,
-            #wp-content-editor-container, #post-status-info,
-            .wp-editor-tools, .wp-editor-area { display: none !important; }
-
-            /* Ocultar Screen Options y Help */
-            #screen-options-link-wrap, #contextual-help-link-wrap,
-            #screen-meta, #screen-meta-links { display: none !important; }
-
-            /* Ocultar permalink editable */
-            #edit-slug-box { display: none !important; }
-
-            /* Ocultar "Add Page" button al lado del titulo */
-            .page-title-action { display: none !important; }
-
-            /* Ocultar Page Attributes (template ya esta fijo) */
-            #pageparentdiv { display: none !important; }
-        </style>';
-    }
-}
-add_action('admin_head', 'cfc_hide_editor_css');
-
-/**
- * Show template info banner on CFC template pages
- */
-function cfc_template_info_banner() {
-    global $pagenow;
-    if ($pagenow !== 'post.php') return;
-    if (get_post_type() !== 'page') return;
-
-    $post_id = isset($_GET['post']) ? $_GET['post'] : 0;
-    if (!$post_id) return;
-
-    $template = get_post_meta($post_id, '_wp_page_template', true);
-    $template_names = array(
-        'page-inicio.php'          => array('name' => 'Inicio (Homepage)', 'desc' => 'Pagina principal con hero, horarios, ministerios destacados y reflexiones recientes.'),
-        'page-quienes-somos.php'   => array('name' => 'Quienes Somos', 'desc' => 'Mision, vision, valores, liderazgo pastoral y equipo.'),
-        'page-ministerios.php'     => array('name' => 'Ministerios', 'desc' => 'Lista de todos los ministerios de la iglesia.'),
-        'page-eventos.php'         => array('name' => 'Eventos', 'desc' => 'Proximos eventos y calendario.'),
-        'page-reflexiones.php'     => array('name' => 'Reflexiones', 'desc' => 'Predicas, podcasts, devocionales y estudios.'),
-        'page-visitanos.php'       => array('name' => 'Visitanos', 'desc' => 'Horarios de servicio, ubicacion y galeria.'),
-        'page-dar.php'             => array('name' => 'Dar', 'desc' => 'Informacion para ofrendas y donaciones.'),
-    );
-
-    if (!isset($template_names[$template])) return;
-    $info = $template_names[$template];
-
-    echo '<div style="background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 16px 20px; margin: 10px 0 20px 0; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
-        <svg style="width:28px;height:28px;flex-shrink:0;" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
-        <div>
-            <strong style="font-size: 14px;">Template: ' . esc_html($info['name']) . '</strong><br>
-            <span style="opacity: 0.85; font-size: 13px;">' . esc_html($info['desc']) . '</span>
-        </div>
-    </div>';
-}
-add_action('edit_form_after_title', 'cfc_template_info_banner');
 
 /**
  * Admin Customizations
@@ -1060,8 +1043,49 @@ function cfc_admin_styles() {
 
         .cfc-metabox-field { margin-bottom: 0; }
     </style>';
+
+    // Hide title + featured image sidebar for Equipo CPT (handled in metabox)
+    global $post;
+    if ($post && $post->post_type === 'cfc_equipo') {
+        echo '<style>#titlediv, #postimagediv { display: none !important; }</style>';
+    }
+    if ($post && $post->post_type === 'cfc_grupo') {
+        echo '<style>#postimagediv { display: none !important; }</style>';
+    }
+
+    // Extra styles for locked CFC pages: hide unnecessary UI
+    if ($post && $post->post_type === 'page') {
+        $cfc_slugs = array('inicio', 'quienes-somos', 'eventos', 'ministerios', 'reflexiones', 'visitanos', 'dar');
+        if (in_array($post->post_name, $cfc_slugs)) {
+            echo '<style>
+                /* Hide unnecessary elements on locked CFC pages */
+                #pageparentdiv, #slugdiv, #postcustom,
+                #postdivrich, #wp-content-editor-container,
+                #edit-slug-box, #minor-publishing,
+                .page-title-action,
+                #screen-meta, #screen-meta-links,
+                #postbox-container-1 #revisionsdiv { display: none !important; }
+
+                /* Banner metabox clean look */
+                #cfc_page_banner { border: none !important; box-shadow: none !important; background: #f8fafc; }
+                #cfc_page_banner .postbox-header { display: none !important; }
+                #cfc_page_banner .inside { padding: 0 !important; }
+            </style>';
+        }
+    }
 }
 add_action('admin_head', 'cfc_admin_styles');
+
+/**
+ * Enqueue media uploader on Equipo edit screens
+ */
+function cfc_admin_enqueue_scripts($hook) {
+    global $post;
+    if (($hook === 'post.php' || $hook === 'post-new.php') && $post && in_array($post->post_type, array('cfc_equipo', 'cfc_grupo'))) {
+        wp_enqueue_media();
+    }
+}
+add_action('admin_enqueue_scripts', 'cfc_admin_enqueue_scripts');
 
 /**
  * Metaboxes for Custom Post Types
@@ -1075,9 +1099,9 @@ function cfc_add_metaboxes() {
     add_meta_box('cfc_ministerio_info', 'Información del Ministerio', 'cfc_ministerio_info_html', 'cfc_ministerio', 'normal', 'high');
     add_meta_box('cfc_ministerio_imagen', 'Imagen', 'cfc_ministerio_imagen_html', 'cfc_ministerio', 'normal', 'high');
 
-    // Reflexiones - 2 metaboxes
-    add_meta_box('cfc_reflexion_info', 'Información Básica', 'cfc_reflexion_info_html', 'cfc_reflexion', 'normal', 'high');
-    add_meta_box('cfc_reflexion_media', 'Media y Enlaces', 'cfc_reflexion_media_html', 'cfc_reflexion', 'normal', 'high');
+    // Posts (Reflexiones) - 2 metaboxes
+    add_meta_box('cfc_reflexion_info', 'Información Básica', 'cfc_reflexion_info_html', 'post', 'normal', 'high');
+    add_meta_box('cfc_reflexion_media', 'Media y Enlaces', 'cfc_reflexion_media_html', 'post', 'normal', 'high');
 
     // Grupos - 1 metabox
     add_meta_box('cfc_grupo_info', 'Información del Grupo', 'cfc_grupo_info_html', 'cfc_grupo', 'normal', 'high');
@@ -1086,35 +1110,107 @@ function cfc_add_metaboxes() {
     add_meta_box('cfc_equipo_info', 'Información del Miembro', 'cfc_equipo_info_html', 'cfc_equipo', 'normal', 'high');
     add_meta_box('cfc_equipo_visual', 'Apariencia', 'cfc_equipo_visual_html', 'cfc_equipo', 'normal', 'high');
 
-    // Template DAR - 2 metaboxes
-    add_meta_box('cfc_dar_hero', 'Hero Section', 'cfc_dar_hero_html', 'page', 'normal', 'high');
-    add_meta_box('cfc_dar_banco', 'Información Bancaria', 'cfc_dar_banco_html', 'page', 'normal', 'high');
-
-    // Template VISITANOS - 3 metaboxes
-    add_meta_box('cfc_visitanos_hero', 'Hero Section', 'cfc_visitanos_hero_html', 'page', 'normal', 'high');
-    add_meta_box('cfc_visitanos_horarios', 'Horarios de Servicios', 'cfc_visitanos_horarios_html', 'page', 'normal', 'high');
-    add_meta_box('cfc_visitanos_galeria', 'Galería de Imágenes', 'cfc_visitanos_galeria_html', 'page', 'normal', 'high');
-
-    // Template QUIENES SOMOS - 3 metaboxes
-    add_meta_box('cfc_quienes_hero', 'Hero Section', 'cfc_quienes_hero_html', 'page', 'normal', 'high');
-    add_meta_box('cfc_quienes_pastores', 'Nuestro Liderazgo (Pastores)', 'cfc_quienes_pastores_html', 'page', 'normal', 'high');
-    add_meta_box('cfc_quienes_mision', 'Misión y Visión', 'cfc_quienes_mision_html', 'page', 'normal', 'high');
-
-    // Template INICIO - 4 metaboxes
-    add_meta_box('cfc_inicio_hero', 'Hero Section', 'cfc_inicio_hero_html', 'page', 'normal', 'high');
-    add_meta_box('cfc_inicio_reflexiones', 'Sección Reflexiones Recientes', 'cfc_inicio_reflexiones_html', 'page', 'normal', 'high');
-
-    // Template EVENTOS - 2 metaboxes
-    add_meta_box('cfc_eventos_hero', 'Hero Section', 'cfc_eventos_hero_html', 'page', 'normal', 'high');
-    add_meta_box('cfc_eventos_calendar', 'Google Calendar', 'cfc_eventos_calendar_html', 'page', 'normal', 'high');
-
-    // Template MINISTERIOS - 1 metabox
-    add_meta_box('cfc_ministerios_hero', 'Hero Section', 'cfc_ministerios_hero_html', 'page', 'normal', 'high');
-
-    // Template REFLEXIONES - 1 metabox
-    add_meta_box('cfc_reflexiones_hero', 'Hero Section', 'cfc_reflexiones_hero_html', 'page', 'normal', 'high');
 }
 add_action('add_meta_boxes', 'cfc_add_metaboxes');
+
+/**
+ * Lock CFC template pages: hide editor, show info banner with action buttons
+ */
+function cfc_lock_template_pages() {
+    global $post;
+    if (!$post || $post->post_type !== 'page') return;
+
+    $pages = array(
+        'inicio' => array(
+            'icon'  => 'dashicons-admin-home',
+            'title' => 'Página de Inicio',
+            'desc'  => 'La página principal del sitio. Se genera automáticamente con el contenido de las secciones.',
+            'links' => array(
+                array('Configuraciones', 'admin.php?page=cfc-configuraciones', 'dashicons-admin-settings'),
+                array('Reflexiones', 'edit.php', 'dashicons-edit'),
+                array('Grupos', 'edit.php?post_type=cfc_grupo', 'dashicons-groups'),
+            ),
+        ),
+        'quienes-somos' => array(
+            'icon'  => 'dashicons-groups',
+            'title' => 'Quiénes Somos',
+            'desc'  => 'Muestra la misión, visión y el equipo pastoral de la iglesia.',
+            'links' => array(
+                array('Editar Equipo Pastoral', 'edit.php?post_type=cfc_equipo', 'dashicons-groups'),
+            ),
+        ),
+        'eventos' => array(
+            'icon'  => 'dashicons-calendar-alt',
+            'title' => 'Eventos',
+            'desc'  => 'Muestra los próximos eventos y el calendario de la iglesia.',
+            'links' => array(
+                array('Administrar Eventos', 'edit.php?post_type=cfc_evento', 'dashicons-calendar-alt'),
+            ),
+        ),
+        'ministerios' => array(
+            'icon'  => 'dashicons-heart',
+            'title' => 'Ministerios',
+            'desc'  => 'Muestra los ministerios de la iglesia.',
+            'links' => array(
+                array('Administrar Ministerios', 'edit.php?post_type=cfc_ministerio', 'dashicons-heart'),
+            ),
+        ),
+        'reflexiones' => array(
+            'icon'  => 'dashicons-book-alt',
+            'title' => 'Reflexiones',
+            'desc'  => 'Muestra las reflexiones y devocionales publicados.',
+            'links' => array(
+                array('Administrar Entradas', 'edit.php', 'dashicons-edit'),
+            ),
+        ),
+        'visitanos' => array(
+            'icon'  => 'dashicons-location',
+            'title' => 'Visítanos',
+            'desc'  => 'Muestra la ubicación, horarios y galería de la iglesia.',
+            'links' => array(
+                array('Configuraciones', 'admin.php?page=cfc-configuraciones', 'dashicons-admin-settings'),
+            ),
+        ),
+        'dar' => array(
+            'icon'  => 'dashicons-money-alt',
+            'title' => 'Dar / Ofrendas',
+            'desc'  => 'Muestra la información para donaciones y ofrendas.',
+            'links' => array(
+                array('Configuraciones', 'admin.php?page=cfc-configuraciones', 'dashicons-admin-settings'),
+            ),
+        ),
+    );
+
+    $slug = $post->post_name;
+    if (!isset($pages[$slug])) return;
+
+    // Hide editor
+    remove_post_type_support('page', 'editor');
+
+    // Add banner metabox
+    $config = $pages[$slug];
+    add_meta_box('cfc_page_banner', 'Información de la Página', function() use ($config) {
+        ?>
+        <div style="text-align:center; padding:40px 20px;">
+            <div style="display:inline-flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:16px; background:linear-gradient(135deg, #1e40af, #3b82f6); margin-bottom:16px;">
+                <span class="dashicons <?php echo esc_attr($config['icon']); ?>" style="font-size:32px; width:32px; height:32px; color:#fff;"></span>
+            </div>
+            <h2 style="font-size:24px; font-weight:700; margin:0 0 8px; color:#1e293b;"><?php echo esc_html($config['title']); ?></h2>
+            <p style="font-size:15px; color:#64748b; margin:0 0 24px; max-width:400px; margin-left:auto; margin-right:auto;"><?php echo esc_html($config['desc']); ?></p>
+            <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+                <?php foreach ($config['links'] as $link) : ?>
+                <a href="<?php echo esc_url(admin_url($link[1])); ?>" style="display:inline-flex; align-items:center; gap:8px; padding:10px 20px; background:#1e40af; color:#fff; border-radius:8px; text-decoration:none; font-weight:600; font-size:14px; transition:background 0.2s;" onmouseover="this.style.background='#1e3a8a'" onmouseout="this.style.background='#1e40af'">
+                    <span class="dashicons <?php echo esc_attr($link[2]); ?>" style="font-size:18px; width:18px; height:18px;"></span>
+                    <?php echo esc_html($link[0]); ?>
+                </a>
+                <?php endforeach; ?>
+            </div>
+            <p style="font-size:13px; color:#94a3b8; margin-top:24px;">Esta página se genera automáticamente. No necesita ser editada.</p>
+        </div>
+        <?php
+    }, 'page', 'normal', 'high');
+}
+add_action('add_meta_boxes', 'cfc_lock_template_pages', 20);
 
 /**
  * =====================================================
@@ -1738,96 +1834,6 @@ function cfc_page_fields_save($post_id) {
 add_action('save_post', 'cfc_page_fields_save');
 
 /**
- * JavaScript para mostrar/ocultar metaboxes según template seleccionado
- */
-function cfc_page_metaboxes_visibility_script() {
-    global $pagenow, $post_type;
-    if (($pagenow !== 'post.php' && $pagenow !== 'post-new.php') || $post_type !== 'page') return;
-    ?>
-    <style>
-    /* Ocultar todos los metaboxes CFC hasta que JS determine cuáles mostrar */
-    #cfc_dar_hero, #cfc_dar_banco,
-    #cfc_visitanos_hero, #cfc_visitanos_horarios, #cfc_visitanos_galeria,
-    #cfc_quienes_hero, #cfc_quienes_pastores, #cfc_quienes_mision,
-    #cfc_inicio_hero, #cfc_inicio_reflexiones,
-    #cfc_eventos_hero, #cfc_eventos_calendar,
-    #cfc_ministerios_hero,
-    #cfc_reflexiones_hero { display: none !important; }
-    </style>
-    <script>
-    jQuery(document).ready(function($) {
-        var metaboxMap = {
-            'dar': ['cfc_dar_hero', 'cfc_dar_banco'],
-            'visitanos': ['cfc_visitanos_hero', 'cfc_visitanos_horarios', 'cfc_visitanos_galeria'],
-            'quienes-somos': ['cfc_quienes_hero', 'cfc_quienes_pastores', 'cfc_quienes_mision'],
-            'inicio': ['cfc_inicio_hero', 'cfc_inicio_reflexiones'],
-            'eventos': ['cfc_eventos_hero', 'cfc_eventos_calendar'],
-            'ministerios': ['cfc_ministerios_hero'],
-            'reflexiones': ['cfc_reflexiones_hero']
-        };
-
-        var allMetaboxes = [];
-        for (var key in metaboxMap) {
-            allMetaboxes = allMetaboxes.concat(metaboxMap[key]);
-        }
-
-        function updateMetaboxVisibility() {
-            var template = '';
-
-            // Gutenberg
-            if (wp.data && wp.data.select('core/editor')) {
-                template = wp.data.select('core/editor').getEditedPostAttribute('template') || '';
-            }
-            // Classic editor
-            if (!template) {
-                var $select = $('#page_template');
-                if ($select.length) {
-                    template = $select.val();
-                }
-            }
-
-            // Ocultar todos los metaboxes de templates
-            allMetaboxes.forEach(function(id) {
-                $('#' + id).hide();
-            });
-
-            // Mostrar los metaboxes del template actual
-            for (var key in metaboxMap) {
-                if (template.indexOf(key) !== -1) {
-                    metaboxMap[key].forEach(function(id) {
-                        $('#' + id).show();
-                    });
-                    break;
-                }
-            }
-        }
-
-        // Ejecutar al cargar
-        updateMetaboxVisibility();
-
-        // Classic editor
-        $('#page_template').on('change', updateMetaboxVisibility);
-
-        // Gutenberg
-        if (wp.data && wp.data.subscribe) {
-            var lastTemplate = '';
-            wp.data.subscribe(function() {
-                if (wp.data.select('core/editor')) {
-                    var template = wp.data.select('core/editor').getEditedPostAttribute('template') || '';
-                    if (template !== lastTemplate) {
-                        lastTemplate = template;
-                        updateMetaboxVisibility();
-                    }
-                }
-            });
-        }
-    });
-    </script>
-    <?php
-}
-add_action('admin_footer', 'cfc_page_metaboxes_visibility_script');
-
-/**
  * Evento Metabox 1: Fecha y Ubicación
  */
 function cfc_evento_fecha_html($post) {
@@ -2103,7 +2109,7 @@ function cfc_reflexion_save($post_id) {
         }
     }
 }
-add_action('save_post_cfc_reflexion', 'cfc_reflexion_save');
+add_action('save_post_post', 'cfc_reflexion_save');
 
 /**
  * Grupo Metabox: Información del Grupo
@@ -2117,8 +2123,31 @@ function cfc_grupo_info_html($post) {
     $btn_texto = get_post_meta($post->ID, 'btn_texto', true);
     $color = get_post_meta($post->ID, 'color', true);
     $orden = get_post_meta($post->ID, 'orden', true);
+    $foto_id = get_post_thumbnail_id($post->ID);
+    $foto_url = $foto_id ? wp_get_attachment_image_url($foto_id, 'medium') : '';
     ?>
     <div class="cfc-metabox-grid">
+        <!-- Foto -->
+        <div class="cfc-metabox-field full-width">
+            <label>Imagen de Fondo</label>
+            <div id="cfc-grupo-foto-preview" style="margin-bottom:10px; <?php echo $foto_url ? '' : 'display:none;'; ?>">
+                <img src="<?php echo esc_url($foto_url); ?>" style="max-width:300px; height:auto; border-radius:12px; border:2px solid #e5e7eb;">
+            </div>
+            <input type="hidden" id="cfc_grupo_foto_id" name="_thumbnail_id" value="<?php echo esc_attr($foto_id); ?>">
+            <button type="button" id="cfc-grupo-foto-upload" class="button"><?php echo $foto_url ? 'Cambiar Imagen' : 'Seleccionar Imagen'; ?></button>
+            <?php if ($foto_url) : ?>
+            <button type="button" id="cfc-grupo-foto-remove" class="button" style="color:#dc2626;">Quitar</button>
+            <?php endif; ?>
+            <p class="description">Sube una imagen para el grupo. Si no subes ninguna, se usará la URL de abajo (opcional).</p>
+        </div>
+
+        <!-- URL fallback -->
+        <div class="cfc-metabox-field full-width" id="cfc-grupo-url-fallback" style="<?php echo $foto_url ? 'display:none;' : ''; ?>">
+            <label for="imagen_url">Imagen por URL (opcional)</label>
+            <input type="url" id="imagen_url" name="imagen_url" value="<?php echo esc_attr($imagen_url); ?>" placeholder="https://images.unsplash.com/...">
+            <p class="description">Solo se usa si no hay imagen subida arriba.</p>
+        </div>
+
         <div class="cfc-metabox-field">
             <label for="rango_edad">Rango de Edad</label>
             <input type="text" id="rango_edad" name="rango_edad" value="<?php echo esc_attr($rango_edad); ?>" placeholder="Ej: 13-17 años">
@@ -2127,12 +2156,6 @@ function cfc_grupo_info_html($post) {
         <div class="cfc-metabox-field">
             <label for="horario">Horario</label>
             <input type="text" id="horario" name="horario" value="<?php echo esc_attr($horario); ?>" placeholder="Ej: Sábados 4:00 PM">
-        </div>
-
-        <div class="cfc-metabox-field full-width">
-            <label for="imagen_url">Imagen (URL)</label>
-            <input type="url" id="imagen_url" name="imagen_url" value="<?php echo esc_attr($imagen_url); ?>" placeholder="https://images.unsplash.com/...">
-            <p class="description">Imagen de respaldo si no se asigna imagen destacada.</p>
         </div>
 
         <div class="cfc-metabox-field">
@@ -2161,6 +2184,39 @@ function cfc_grupo_info_html($post) {
             <input type="number" id="orden" name="orden" value="<?php echo esc_attr($orden); ?>" placeholder="1, 2, 3..." min="1">
         </div>
     </div>
+
+    <script>
+    jQuery(function($) {
+        $('#cfc-grupo-foto-upload').on('click', function(e) {
+            e.preventDefault();
+            var frame = wp.media({ title: 'Seleccionar Imagen', button: { text: 'Usar esta imagen' }, multiple: false, library: { type: 'image' } });
+            frame.on('select', function() {
+                var att = frame.state().get('selection').first().toJSON();
+                var url = att.sizes && att.sizes.medium ? att.sizes.medium.url : att.url;
+                $('#cfc_grupo_foto_id').val(att.id);
+                $('#cfc-grupo-foto-preview').show().find('img').attr('src', url);
+                $('#cfc-grupo-foto-upload').text('Cambiar Imagen');
+                $('#cfc-grupo-url-fallback').hide();
+                if (!$('#cfc-grupo-foto-remove').length) {
+                    $('#cfc-grupo-foto-upload').after(' <button type="button" id="cfc-grupo-foto-remove" class="button" style="color:#dc2626;">Quitar</button>');
+                    bindGrupoRemove();
+                }
+            });
+            frame.open();
+        });
+        function bindGrupoRemove() {
+            $('#cfc-grupo-foto-remove').on('click', function(e) {
+                e.preventDefault();
+                $('#cfc_grupo_foto_id').val('');
+                $('#cfc-grupo-foto-preview').hide();
+                $('#cfc-grupo-foto-upload').text('Seleccionar Imagen');
+                $('#cfc-grupo-url-fallback').show();
+                $(this).remove();
+            });
+        }
+        bindGrupoRemove();
+    });
+    </script>
     <?php
 }
 
@@ -2190,20 +2246,50 @@ add_action('save_post_cfc_grupo', 'cfc_grupo_save');
  */
 function cfc_equipo_info_html($post) {
     wp_nonce_field('cfc_equipo_save', 'cfc_equipo_nonce');
+    $nombre = get_post_meta($post->ID, 'nombre', true);
     $cargo = get_post_meta($post->ID, 'cargo', true);
     $orden = get_post_meta($post->ID, 'orden', true);
+    $es_pastor = get_post_meta($post->ID, 'es_pastor', true);
+    $biografia = get_post_meta($post->ID, 'biografia', true);
     ?>
     <div class="cfc-metabox-grid">
+        <div class="cfc-metabox-field full-width">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" value="<?php echo esc_attr($nombre); ?>" placeholder="Ej: Guillermo y Edilma Campbell">
+            <p class="description">Nombre de la persona o pareja</p>
+        </div>
+
         <div class="cfc-metabox-field">
             <label for="cargo">Cargo / Rol</label>
-            <input type="text" id="cargo" name="cargo" value="<?php echo esc_attr($cargo); ?>" placeholder="Ej: Pastor Principal">
+            <input type="text" id="cargo" name="cargo" value="<?php echo esc_attr($cargo); ?>" placeholder="Ej: Pastores Principales">
         </div>
 
         <div class="cfc-metabox-field">
             <label for="orden">Orden de aparición</label>
             <input type="number" id="orden" name="orden" value="<?php echo esc_attr($orden); ?>" placeholder="1, 2, 3..." min="1">
         </div>
+
+        <!-- Pastor Principal toggle -->
+        <div class="cfc-metabox-field full-width" style="background:#f0f7ff; padding:16px; border-radius:8px; border:1px solid #bfdbfe;">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600;">
+                <input type="checkbox" id="es_pastor" name="es_pastor" value="1" <?php checked($es_pastor, '1'); ?> style="width:18px; height:18px;">
+                Familia Pastoral (se muestra en sección "Nuestro Liderazgo")
+            </label>
+            <p class="description" style="margin-top:6px;">Solo un miembro puede tener esto activado. Al marcar aquí, se desmarca de cualquier otro.</p>
+        </div>
+
+        <!-- Biografía (visible si es pastor) -->
+        <div class="cfc-metabox-field full-width" id="cfc-biografia-field" style="<?php echo $es_pastor ? '' : 'display:none;'; ?>">
+            <label for="biografia">Biografía / Descripción</label>
+            <textarea id="biografia" name="biografia" rows="4" placeholder="Texto que aparece junto a la foto en la sección de liderazgo..."><?php echo esc_textarea($biografia); ?></textarea>
+        </div>
     </div>
+
+    <script>
+    document.getElementById('es_pastor').addEventListener('change', function() {
+        document.getElementById('cfc-biografia-field').style.display = this.checked ? '' : 'none';
+    });
+    </script>
     <?php
 }
 
@@ -2213,14 +2299,61 @@ function cfc_equipo_info_html($post) {
 function cfc_equipo_visual_html($post) {
     $icono = get_post_meta($post->ID, 'icono', true);
     $color = get_post_meta($post->ID, 'color', true);
+    $foto_id = get_post_thumbnail_id($post->ID);
+    $foto_url = $foto_id ? wp_get_attachment_image_url($foto_id, 'medium') : '';
     ?>
     <div class="cfc-metabox-grid">
-        <div class="cfc-metabox-field">
-            <label for="icono">Icono (emoji)</label>
-            <input type="text" id="icono" name="icono" value="<?php echo esc_attr($icono); ?>" placeholder="Ej: ✝️ 🎵 🚀">
+        <!-- Foto -->
+        <div class="cfc-metabox-field full-width">
+            <label>Foto</label>
+            <div id="cfc-foto-preview" style="margin-bottom:10px; <?php echo $foto_url ? '' : 'display:none;'; ?>">
+                <img src="<?php echo esc_url($foto_url); ?>" style="max-width:200px; height:auto; border-radius:12px; border:2px solid #e5e7eb;">
+            </div>
+            <input type="hidden" id="cfc_foto_id" name="_thumbnail_id" value="<?php echo esc_attr($foto_id); ?>">
+            <button type="button" id="cfc-foto-upload" class="button"><?php echo $foto_url ? 'Cambiar Foto' : 'Seleccionar Foto'; ?></button>
+            <?php if ($foto_url) : ?>
+            <button type="button" id="cfc-foto-remove" class="button" style="color:#dc2626;">Quitar</button>
+            <?php endif; ?>
+            <p class="description">Foto de la persona o pareja (se recomienda formato vertical)</p>
         </div>
 
-        <div class="cfc-metabox-field">
+        <!-- Icono -->
+        <div class="cfc-metabox-field full-width">
+            <label>Icono <small style="color:#6b7280; font-weight:normal;">(dejar vacío = logo CFC)</small></label>
+            <input type="hidden" id="icono" name="icono" value="<?php echo esc_attr($icono); ?>">
+            <div id="cfc-icon-grid" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:4px;">
+                <?php
+                $icons = array(
+                    '' => array('Logo CFC', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>'),
+                    'music' => array('Alabanza', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>'),
+                    'heart' => array('Amor', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>'),
+                    'cross' => array('Fe', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2a1 1 0 0 1 2 0v7h7a1 1 0 0 1 0 2h-7v11a1 1 0 0 1-2 0V11H4a1 1 0 0 1 0-2h7z"/></svg>'),
+                    'users' => array('Comunidad', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'),
+                    'book-open' => array('Biblia', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>'),
+                    'mic' => array('Predica', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>'),
+                    'flame' => array('Fuego', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>'),
+                    'baby' => array('Ninos', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/></svg>'),
+                    'rocket' => array('Jovenes', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>'),
+                    'shield' => array('Ujieres', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>'),
+                    'biceps' => array('Varones', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="m16 16 3.5 3.5"/><path d="m19 19 2 2"/><path d="M14.5 6.5 18 3l3 3-3.5 3.5"/></svg>'),
+                    'heart-handshake' => array('Parejas', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.96 2.66"/><path d="m18 15-2-2"/><path d="m15 18-2-2"/></svg>'),
+                    'flower2' => array('Mujeres', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1"/><circle cx="12" cy="8" r="2"/><path d="M12 10v12"/><path d="M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z"/><path d="M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z"/></svg>'),
+                    'monitor' => array('Multimedia', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>'),
+                );
+                foreach ($icons as $key => $data) :
+                    $is_selected = ($icono === $key) || ($key === '' && empty($icono));
+                    $sel_style = $is_selected ? 'outline:2px solid #1e40af; background:#eff6ff;' : '';
+                ?>
+                <button type="button" class="cfc-icon-btn" data-icon="<?php echo esc_attr($key); ?>" title="<?php echo esc_attr($data[0]); ?>" style="width:44px; height:44px; border:1px solid #e5e7eb; border-radius:10px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; color:#374151; <?php echo $sel_style; ?>">
+                    <span style="width:22px; height:22px; display:block;"><?php echo $data[1]; ?></span>
+                </button>
+                <?php endforeach; ?>
+            </div>
+            <p class="description" style="margin-top:8px;">Selecciona un icono. "Logo CFC" usa el logo de la iglesia.</p>
+        </div>
+
+        <!-- Color -->
+        <div class="cfc-metabox-field full-width">
             <label for="color">Color del badge</label>
             <select id="color" name="color">
                 <option value="primary" <?php selected($color, 'primary'); ?>>Azul Primario (Evangelismo)</option>
@@ -2235,6 +2368,51 @@ function cfc_equipo_visual_html($post) {
             </select>
         </div>
     </div>
+
+    <script>
+    jQuery(function($) {
+        // Icon picker
+        $('.cfc-icon-btn').on('click', function() {
+            $('.cfc-icon-btn').css({'outline':'none', 'background':'#fff'});
+            $(this).css({'outline':'2px solid #1e40af', 'background':'#eff6ff'});
+            $('#icono').val($(this).data('icon'));
+        });
+
+        // Photo upload
+        $('#cfc-foto-upload').on('click', function(e) {
+            e.preventDefault();
+            var frame = wp.media({
+                title: 'Seleccionar Foto',
+                button: { text: 'Usar esta foto' },
+                multiple: false,
+                library: { type: 'image' }
+            });
+            frame.on('select', function() {
+                var attachment = frame.state().get('selection').first().toJSON();
+                $('#cfc_foto_id').val(attachment.id);
+                var url = attachment.sizes && attachment.sizes.medium ? attachment.sizes.medium.url : attachment.url;
+                $('#cfc-foto-preview').show().find('img').attr('src', url);
+                $('#cfc-foto-upload').text('Cambiar Foto');
+                if (!$('#cfc-foto-remove').length) {
+                    $('#cfc-foto-upload').after(' <button type="button" id="cfc-foto-remove" class="button" style="color:#dc2626;">Quitar</button>');
+                    bindRemove();
+                }
+            });
+            frame.open();
+        });
+
+        function bindRemove() {
+            $('#cfc-foto-remove').on('click', function(e) {
+                e.preventDefault();
+                $('#cfc_foto_id').val('');
+                $('#cfc-foto-preview').hide();
+                $('#cfc-foto-upload').text('Seleccionar Foto');
+                $(this).remove();
+            });
+        }
+        bindRemove();
+    });
+    </script>
     <?php
 }
 
@@ -2243,14 +2421,61 @@ function cfc_equipo_save($post_id) {
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
     if (!current_user_can('edit_post', $post_id)) return;
 
-    $fields = array('cargo', 'icono', 'color', 'orden');
+    $fields = array('nombre', 'cargo', 'icono', 'color', 'orden');
     foreach ($fields as $field) {
         if (isset($_POST[$field])) {
             update_post_meta($post_id, $field, sanitize_text_field($_POST[$field]));
         }
     }
+
+    // Pastor Principal: solo uno puede tenerlo
+    if (!empty($_POST['es_pastor'])) {
+        // Desmarcar todos los demás
+        $otros = get_posts(array('post_type' => 'cfc_equipo', 'posts_per_page' => -1, 'exclude' => array($post_id), 'meta_key' => 'es_pastor', 'meta_value' => '1'));
+        foreach ($otros as $otro) {
+            delete_post_meta($otro->ID, 'es_pastor');
+        }
+        update_post_meta($post_id, 'es_pastor', '1');
+    } else {
+        delete_post_meta($post_id, 'es_pastor');
+    }
+
+    // Biografía
+    if (isset($_POST['biografia'])) {
+        update_post_meta($post_id, 'biografia', sanitize_textarea_field($_POST['biografia']));
+    }
+
+    // Auto-set post title from nombre field
+    if (!empty($_POST['nombre'])) {
+        remove_action('save_post_cfc_equipo', 'cfc_equipo_save');
+        wp_update_post(array('ID' => $post_id, 'post_title' => sanitize_text_field($_POST['nombre'])));
+        add_action('save_post_cfc_equipo', 'cfc_equipo_save');
+    }
 }
 add_action('save_post_cfc_equipo', 'cfc_equipo_save');
+
+/**
+ * Equipo admin columns: show Cargo
+ */
+function cfc_equipo_admin_columns($columns) {
+    $new = array();
+    foreach ($columns as $key => $val) {
+        $new[$key] = $val;
+        if ($key === 'title') {
+            $new['cargo'] = 'Cargo / Rol';
+        }
+    }
+    return $new;
+}
+add_filter('manage_cfc_equipo_posts_columns', 'cfc_equipo_admin_columns');
+
+function cfc_equipo_admin_column_data($column, $post_id) {
+    if ($column === 'cargo') {
+        $cargo = get_post_meta($post_id, 'cargo', true);
+        echo $cargo ? esc_html($cargo) : '<span style="color:#999;">—</span>';
+    }
+}
+add_action('manage_cfc_equipo_posts_custom_column', 'cfc_equipo_admin_column_data', 10, 2);
 
 /**
  * Theme Options Page (native, no ACF needed)
@@ -2298,6 +2523,33 @@ function cfc_add_options_page() {
     );
 }
 add_action('admin_menu', 'cfc_add_options_page');
+
+/**
+ * Disable comments entirely
+ */
+function cfc_disable_comments() {
+    // Remove comments from admin menu
+    remove_menu_page('edit-comments.php');
+    // Remove comments from admin bar
+    if (is_admin_bar_showing()) {
+        remove_action('admin_bar_menu', 'wp_admin_bar_comments_menu', 60);
+    }
+}
+add_action('admin_menu', 'cfc_disable_comments');
+
+function cfc_disable_comments_support() {
+    // Remove comment support from all post types
+    foreach (get_post_types() as $post_type) {
+        remove_post_type_support($post_type, 'comments');
+        remove_post_type_support($post_type, 'trackbacks');
+    }
+}
+add_action('init', 'cfc_disable_comments_support', 100);
+
+// Close comments on frontend
+add_filter('comments_open', '__return_false', 20, 2);
+add_filter('pings_open', '__return_false', 20, 2);
+add_filter('comments_array', '__return_empty_array', 10, 2);
 
 /**
  * Shared admin styles for CFC options pages
@@ -3163,8 +3415,8 @@ function cfc_create_sample_reflexiones() {
     );
 
     foreach ($categorias as $slug => $name) {
-        if (!term_exists($slug, 'categoria_reflexion')) {
-            wp_insert_term($name, 'categoria_reflexion', array('slug' => $slug));
+        if (!term_exists($slug, 'category')) {
+            wp_insert_term($name, 'category', array('slug' => $slug));
         }
     }
 
@@ -3238,21 +3490,21 @@ function cfc_create_sample_reflexiones() {
     );
 
     foreach ($reflexiones as $index => $reflexion) {
-        $existing = get_page_by_title($reflexion['title'], OBJECT, 'cfc_reflexion');
+        $existing = get_page_by_title($reflexion['title'], OBJECT, 'post');
         if (!$existing) {
             $post_id = wp_insert_post(array(
                 'post_title' => $reflexion['title'],
                 'post_content' => $reflexion['content'],
-                'post_type' => 'cfc_reflexion',
+                'post_type' => 'post',
                 'post_status' => 'publish',
                 'post_date' => date('Y-m-d H:i:s', strtotime("-{$index} days")),
             ));
 
             if ($post_id && !is_wp_error($post_id)) {
                 // Set category
-                $term = get_term_by('slug', $reflexion['categoria'], 'categoria_reflexion');
+                $term = get_term_by('slug', $reflexion['categoria'], 'category');
                 if ($term) {
-                    wp_set_object_terms($post_id, $term->term_id, 'categoria_reflexion');
+                    wp_set_object_terms($post_id, $term->term_id, 'category');
                 }
 
                 // Set meta fields

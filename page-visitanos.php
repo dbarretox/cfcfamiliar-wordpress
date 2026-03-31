@@ -1,6 +1,6 @@
 <?php
 /**
- * Template Name: Visítanos
+ * Visítanos page template
  *
  * @package CFC_Familiar
  */
@@ -59,13 +59,13 @@ $service_time = cfc_get_option('service_time', cfc_default('service_time'));
                     </div>
 
                     <?php
-                    // Get dynamic values
-                    $h_viernes_nombre = get_post_meta(get_the_ID(), 'horario_viernes_nombre', true) ?: 'Viernes';
-                    $h_viernes_hora = get_post_meta(get_the_ID(), 'horario_viernes_hora', true) ?: '7:00 PM';
-                    $h_viernes_desc = get_post_meta(get_the_ID(), 'horario_viernes_desc', true) ?: 'Estudio Bíblico';
-                    $h_sabado_nombre = get_post_meta(get_the_ID(), 'horario_sabado_nombre', true) ?: 'Sábado';
-                    $h_sabado_hora = get_post_meta(get_the_ID(), 'horario_sabado_hora', true) ?: '4:00 PM';
-                    $h_sabado_desc = get_post_meta(get_the_ID(), 'horario_sabado_desc', true) ?: 'Reunión de Jóvenes';
+                    // Schedule defaults
+                    $h_viernes_nombre = 'Viernes';
+                    $h_viernes_hora = '7:00 PM';
+                    $h_viernes_desc = 'Estudio Bíblico';
+                    $h_sabado_nombre = 'Sábado';
+                    $h_sabado_hora = '4:00 PM';
+                    $h_sabado_desc = 'Reunión de Jóvenes';
                     ?>
                     <!-- Horarios en grid -->
                     <div class="grid md:grid-cols-3 gap-8 mb-10">
@@ -134,9 +134,9 @@ $service_time = cfc_get_option('service_time', cfc_default('service_time'));
                     </div>
 
                     <?php
-                    $galeria_1 = get_post_meta(get_the_ID(), 'galeria_1', true) ?: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=400&h=300&fit=crop';
-                    $galeria_2 = get_post_meta(get_the_ID(), 'galeria_2', true) ?: 'https://images.unsplash.com/photo-1523301343968-6a6ebf63c672?w=400&h=300&fit=crop';
-                    $galeria_3 = get_post_meta(get_the_ID(), 'galeria_3', true) ?: 'https://images.unsplash.com/photo-1509021436665-8f07dbf5bf1d?w=400&h=300&fit=crop';
+                    $galeria_1 = 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=400&h=300&fit=crop';
+                    $galeria_2 = 'https://images.unsplash.com/photo-1523301343968-6a6ebf63c672?w=400&h=300&fit=crop';
+                    $galeria_3 = 'https://images.unsplash.com/photo-1509021436665-8f07dbf5bf1d?w=400&h=300&fit=crop';
                     ?>
                     <div class="grid md:grid-cols-3 gap-4">
                         <img src="<?php echo esc_url($galeria_1); ?>" alt="Comunidad" class="w-full h-48 object-cover rounded-2xl shadow-lg">
@@ -146,14 +146,15 @@ $service_time = cfc_get_option('service_time', cfc_default('service_time'));
                 </div>
 
                 <?php
-                // Zona de contenido libre (editor de WordPress)
-                $content = get_the_content();
-                if (!empty(trim($content))) :
+                // Zona de contenido libre (only if loaded as a real WordPress page)
+                if (get_the_ID()) :
+                    $content = get_the_content();
+                    if (!empty(trim($content))) :
                 ?>
                 <div class="mb-12 cfc-content" data-aos="fade-up">
                     <?php the_content(); ?>
                 </div>
-                <?php endif; ?>
+                <?php endif; endif; ?>
 
                 <!-- CTA Final con WhatsApp -->
                 <div class="bg-gradient-to-r from-primary via-secondary to-accent text-white rounded-3xl p-10 text-center" data-aos="zoom-in">

@@ -54,7 +54,7 @@ get_header();
                     <div class="flex flex-wrap justify-center gap-4">
                         <a href="<?php echo esc_url(home_url('/visitanos')); ?>" class="text-primary hover:text-primary-dark font-semibold transition-colors">Visítanos</a>
                         <span class="text-gray-300">|</span>
-                        <a href="<?php echo esc_url(get_post_type_archive_link('cfc_reflexion')); ?>" class="text-primary hover:text-primary-dark font-semibold transition-colors">Reflexiones</a>
+                        <a href="<?php echo esc_url(get_permalink(get_option('page_for_posts'))); ?>" class="text-primary hover:text-primary-dark font-semibold transition-colors">Reflexiones</a>
                         <span class="text-gray-300">|</span>
                         <a href="<?php echo esc_url(get_post_type_archive_link('cfc_evento')); ?>" class="text-primary hover:text-primary-dark font-semibold transition-colors">Eventos</a>
                         <span class="text-gray-300">|</span>
