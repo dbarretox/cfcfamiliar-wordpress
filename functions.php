@@ -2525,6 +2525,27 @@ function cfc_add_options_page() {
 add_action('admin_menu', 'cfc_add_options_page');
 
 /**
+ * Reorder CFC Familiar submenu: Información first, then CPTs, then settings
+ */
+function cfc_reorder_submenu() {
+    global $submenu;
+    if (!isset($submenu['cfc-familiar'])) return;
+
+    $info = $configs = $footer = array();
+    $cpts = array();
+
+    foreach ($submenu['cfc-familiar'] as $item) {
+        if ($item[2] === 'cfc-familiar') $info[] = $item;
+        elseif ($item[2] === 'cfc-configuraciones') $configs[] = $item;
+        elseif ($item[2] === 'cfc-footer') $footer[] = $item;
+        else $cpts[] = $item;
+    }
+
+    $submenu['cfc-familiar'] = array_merge($info, $cpts, $configs, $footer);
+}
+add_action('admin_menu', 'cfc_reorder_submenu', 999);
+
+/**
  * Disable comments entirely
  */
 function cfc_disable_comments() {
